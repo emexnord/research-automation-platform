@@ -1,11 +1,20 @@
+'use client';
 import Logo from '@/components/Logo';
 import { AppSidebar } from '@/components/app-sidebar';
 import { Button } from '@/registry/new-york-v4/ui/button';
 import { SidebarProvider, SidebarTrigger } from '@/registry/new-york-v4/ui/sidebar';
-
+import { usePathname } from 'next/navigation';
 import { AlignJustify, Bell, Search, Settings } from 'lucide-react';
+import { Toaster } from '@/components/ui/toaster';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
+    const pathname = usePathname();
+    const getHeading = () => {
+        const path = pathname.split('/')[1];
+        if (!path) return 'Tasks';
+        return path.charAt(0).toUpperCase() + path.slice(1);
+    };
+
     return (
         <SidebarProvider className='font-roboto'>
             <AppSidebar />
@@ -16,7 +25,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                             <SidebarTrigger className='-ml-1'>
                                 <AlignJustify />
                             </SidebarTrigger>
-                            <h2 className='ml-2 text-lg font-semibold text-gray-900 capitalize'>Tasks</h2>
+                            <h2 className='ml-2 text-lg font-semibold text-gray-900 capitalize'>{getHeading()}</h2>
                         </div>
 
                         <div className='flex items-center space-x-4'>
@@ -34,6 +43,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </div>
                 {children}
             </main>
+            <Toaster />
         </SidebarProvider>
     );
 }
