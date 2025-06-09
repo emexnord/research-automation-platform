@@ -1,233 +1,104 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect, useState } from 'react';
 
-import { Index } from '@/__registry__';
-import { NavUser } from '@/registry/new-york-v4/blocks/sidebar-07/components/nav-user';
-import { TeamSwitcher } from '@/registry/new-york-v4/blocks/sidebar-07/components/team-switcher';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/registry/new-york-v4/ui/collapsible';
-import { Label } from '@/registry/new-york-v4/ui/label';
+import Link from 'next/link';
+
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarGroupLabel,
     SidebarHeader,
-    SidebarInput,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarMenuSub,
-    SidebarMenuSubButton,
-    SidebarMenuSubItem,
-    SidebarRail
+    SidebarRail,
+    useSidebar
 } from '@/registry/new-york-v4/ui/sidebar';
 
-import {
-    AudioWaveform,
-    BookOpen,
-    Bot,
-    ChevronRightIcon,
-    Command,
-    GalleryVerticalEnd,
-    Search,
-    Settings2,
-    SquareTerminal
-} from 'lucide-react';
-
-// This is sample data.
-const data = {
-    user: {
-        name: 'shadcn',
-        email: 'm@example.com',
-        avatar: '/avatars/shadcn.jpg'
-    },
-    teams: [
-        {
-            name: 'Acme Inc',
-            logo: GalleryVerticalEnd,
-            plan: 'Enterprise'
-        },
-        {
-            name: 'Acme Corp.',
-            logo: AudioWaveform,
-            plan: 'Startup'
-        },
-        {
-            name: 'Evil Corp.',
-            logo: Command,
-            plan: 'Free'
-        }
-    ],
-    navMain: [
-        {
-            title: 'Playground',
-            url: '#',
-            icon: SquareTerminal,
-            isActive: true,
-            items: [
-                {
-                    title: 'History',
-                    url: '#'
-                },
-                {
-                    title: 'Starred',
-                    url: '#'
-                },
-                {
-                    title: 'Settings',
-                    url: '#'
-                }
-            ]
-        },
-        {
-            title: 'Models',
-            url: '#',
-            icon: Bot,
-            items: [
-                {
-                    title: 'Genesis',
-                    url: '#'
-                },
-                {
-                    title: 'Explorer',
-                    url: '#'
-                },
-                {
-                    title: 'Quantum',
-                    url: '#'
-                }
-            ]
-        },
-        {
-            title: 'Documentation',
-            url: '#',
-            icon: BookOpen,
-            items: [
-                {
-                    title: 'Introduction',
-                    url: '#'
-                },
-                {
-                    title: 'Get Started',
-                    url: '#'
-                },
-                {
-                    title: 'Tutorials',
-                    url: '#'
-                },
-                {
-                    title: 'Changelog',
-                    url: '#'
-                }
-            ]
-        },
-        {
-            title: 'Settings',
-            url: '#',
-            icon: Settings2,
-            items: [
-                {
-                    title: 'General',
-                    url: '#'
-                },
-                {
-                    title: 'Team',
-                    url: '#'
-                },
-                {
-                    title: 'Billing',
-                    url: '#'
-                },
-                {
-                    title: 'Limits',
-                    url: '#'
-                }
-            ]
-        }
-    ],
-    components: Object.values(Index).filter((item) => item.type === 'registry:ui')
-};
+import Logo from './Logo';
+import { UserProfile } from './user-profile';
+import { History, SquarePen } from 'lucide-react';
+import { IoChevronDown, IoChevronForward } from 'react-icons/io5';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+    const { state, setOpen } = useSidebar();
+    const [showHistory, setShowHistory] = useState(false);
+
+    useEffect(() => {
+        if (state === 'collapsed') {
+            setShowHistory(false);
+        }
+    }, [state]);
+
+    const handleRecentClick = () => {
+        setOpen(true);
+        setShowHistory((prev) => !prev);
+    };
+
+    // const toggleHistory = () => {
+    //   setShowHistory((prev) => !prev);
+    // };
+
     return (
         <Sidebar collapsible='icon' {...props}>
             <SidebarHeader>
-                <TeamSwitcher teams={data.teams} />
-                <SidebarGroup className='py-0 group-data-[collapsible=icon]:hidden'>
-                    <SidebarGroupContent>
-                        <form className='relative'>
-                            <Label htmlFor='search' className='sr-only'>
-                                Search
-                            </Label>
-                            <SidebarInput id='search' placeholder='Search the docs...' className='pl-8' />
-                            <Search className='pointer-events-none absolute top-1/2 left-2 size-4 -translate-y-1/2 opacity-50 select-none' />
-                        </form>
-                    </SidebarGroupContent>
-                </SidebarGroup>
+                <Link href='/' className='mb-2'>
+                    {state === 'expanded' ? <Logo /> : <Logo iconOnly />}
+                </Link>
             </SidebarHeader>
             <SidebarContent>
-                <SidebarGroup>
-                    <SidebarGroupLabel>Platform</SidebarGroupLabel>
-                    <SidebarMenu>
-                        {data.navMain.map((item) => (
-                            <Collapsible
-                                key={item.title}
-                                asChild
-                                defaultOpen={item.isActive}
-                                className='group/collapsible'>
-                                <SidebarMenuItem>
-                                    <CollapsibleTrigger asChild>
-                                        <SidebarMenuButton tooltip={item.title}>
-                                            {item.icon && <item.icon />}
-                                            <span>{item.title}</span>
-                                            <ChevronRightIcon className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
-                                        </SidebarMenuButton>
-                                    </CollapsibleTrigger>
-                                    <CollapsibleContent>
-                                        <SidebarMenuSub>
-                                            {item.items?.map((subItem) => (
-                                                <SidebarMenuSubItem key={subItem.title}>
-                                                    <SidebarMenuSubButton asChild>
-                                                        <a href={subItem.url}>
-                                                            <span>{subItem.title}</span>
-                                                        </a>
-                                                    </SidebarMenuSubButton>
-                                                </SidebarMenuSubItem>
-                                            ))}
-                                        </SidebarMenuSub>
-                                    </CollapsibleContent>
-                                </SidebarMenuItem>
-                            </Collapsible>
-                        ))}
-                    </SidebarMenu>
-                </SidebarGroup>
-                <SidebarGroup className='group-data-[collapsible=icon]:hidden'>
-                    <SidebarGroupLabel>Components</SidebarGroupLabel>
-                    <SidebarMenu>
-                        {data.components.map((item) => (
-                            <SidebarMenuItem key={item.name}>
-                                <SidebarMenuButton asChild>
-                                    <a href={`/#${item.name}`}>
-                                        <span>{getComponentName(item.name)}</span>
-                                    </a>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        ))}
-                    </SidebarMenu>
-                </SidebarGroup>
+                <SidebarMenu className='gap-4 px-2'>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            className='mt-2 cursor-pointer overflow-visible rounded-lg'
+                            onClick={() => window.open('/task', '_self')}
+                            title='Tasks'>
+                            <div className='mx-1'>
+                                <SquarePen size={20} />
+                            </div>
+                            <span className='text-md'>Tasks</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            className='mt-2 cursor-pointer overflow-visible rounded-lg'
+                            onClick={() => window.open('/form', '_self')}
+                            title='Tasks'>
+                            <div className='mx-1'>
+                                <SquarePen size={20} />
+                            </div>
+                            <span className='text-md'>Form</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            className='mt-2 cursor-pointer overflow-visible rounded-lg'
+                            onClick={() => window.open('/files', '_self')}
+                            title='Tasks'>
+                            <div className='mx-1'>
+                                <SquarePen size={20} />
+                            </div>
+                            <span className='text-md'>Storage</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            className='mt-2 cursor-pointer overflow-visible rounded-lg'
+                            onClick={() => window.open('/task', '_self')}
+                            title='Tasks'>
+                            <div className='mx-1'>
+                                <SquarePen size={20} />
+                            </div>
+                            <span className='text-md'>Tasks</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={data.user} />
+                <UserProfile />
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>
     );
-}
-
-function getComponentName(name: string) {
-    // convert kebab-case to title case
-    return name.replace(/-/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }
