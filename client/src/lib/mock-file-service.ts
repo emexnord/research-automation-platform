@@ -5,6 +5,12 @@ export interface FileItem {
     size?: number;
     modifiedAt: string;
     mimeType: string;
+    sharedWith?: SharedUser[];
+}
+
+export interface SharedUser {
+    email: string;
+    permission: 'viewer' | 'editor' | 'owner';
 }
 
 // Mock data
@@ -14,7 +20,10 @@ const mockFiles: FileItem[] = [
         name: 'Project Documents',
         type: 'folder',
         modifiedAt: '2024-03-20T10:00:00Z',
-        mimeType: 'application/vnd.google-apps.folder'
+        mimeType: 'application/vnd.google-apps.folder',
+        sharedWith: [
+            { email: 'john@example.com', permission: 'editor' }
+        ]
     },
     {
         id: '2',
@@ -22,7 +31,10 @@ const mockFiles: FileItem[] = [
         type: 'file',
         size: 2048576, // 2MB
         modifiedAt: '2024-03-19T15:30:00Z',
-        mimeType: 'application/pdf'
+        mimeType: 'application/pdf',
+        sharedWith: [
+            { email: 'alice@example.com', permission: 'viewer' }
+        ]
     },
     {
         id: '3',
@@ -73,6 +85,35 @@ class MockFileService {
         
         this.files = this.files.filter(file => file.id !== fileId);
         return true;
+    }
+
+    async shareFile(fileId: string, email: string, permission: 'viewer' | 'editor' | 'owner'): Promise<FileItem> {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const fileIndex = this.files.findIndex(file => file.id === fileId);
+        if (fileIndex === -1) {
+            throw new Error('File not found');
+        }
+
+        const file = this.files[fileIndex];
+        const sharedWith = file.sharedWith || [];
+        
+        // Update or add sharing permission
+        const existingShareIndex = sharedWith.findIndex(share => share.email === email);
+        if (existingShareIndex !== -1) {
+            sharedWith[existingShareIndex].permission = permission;
+        } else {
+            sharedWith.push({ email, permission });
+        }
+
+        const updatedFile = {
+            ...file,
+            sharedWith
+        };
+
+        this.files[fileIndex] = updatedFile;
+        return updatedFile;
     }
 }
 

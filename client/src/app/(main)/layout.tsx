@@ -5,6 +5,7 @@ import { Button } from '@/registry/new-york-v4/ui/button';
 import { SidebarProvider, SidebarTrigger } from '@/registry/new-york-v4/ui/sidebar';
 import { usePathname } from 'next/navigation';
 import { AlignJustify, Bell, Search, Settings } from 'lucide-react';
+import { Toaster } from '@/components/ui/toaster';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -42,6 +43,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </div>
                 {children}
             </main>
+            <Toaster />
         </SidebarProvider>
     );
 }

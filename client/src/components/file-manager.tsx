@@ -7,11 +7,14 @@ import { mockFileService, FileItem } from '@/lib/mock-file-service';
 import { useEffect, useState } from 'react';
 import { FileIcon, FolderIcon, Upload, Download, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { ShareDialog } from './share-dialog';
+import { useToast } from '@/components/ui/use-toast';
 
 export function FileManager() {
     const [files, setFiles] = useState<FileItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { toast } = useToast();
 
     useEffect(() => {
         loadFiles();
@@ -55,6 +58,24 @@ export function FileManager() {
             setError(null);
         } catch (err) {
             setError('Failed to delete file');
+            console.error(err);
+        }
+    };
+
+    const handleShare = async (fileId: string, email: string, permission: string) => {
+        try {
+            await mockFileService.shareFile(fileId, email, permission as 'viewer' | 'editor' | 'owner');
+            await loadFiles();
+            toast({
+                title: "File shared successfully",
+                description: `${email} now has ${permission} access to the file.`,
+            });
+        } catch (err) {
+            toast({
+                title: "Failed to share file",
+                description: "There was an error sharing the file. Please try again.",
+                variant: "destructive",
+            });
             console.error(err);
         }
     };
@@ -117,6 +138,11 @@ export function FileManager() {
                                             {file.type === 'file' ? formatFileSize(file.size) : 'Folder'} • 
                                             {formatDistanceToNow(new Date(file.modifiedAt), { addSuffix: true })}
                                         </p>
+                                        {file.sharedWith && file.sharedWith.length > 0 && (
+                                            <p className="text-xs text-gray-400 mt-1">
+                                                Shared with {file.sharedWith.length} {file.sharedWith.length === 1 ? 'person' : 'people'}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -129,6 +155,10 @@ export function FileManager() {
                                             <Download className="h-4 w-4" />
                                         </Button>
                                     )}
+                                    <ShareDialog
+                                        fileName={file.name}
+                                        onShare={(email, permission) => handleShare(file.id, email, permission)}
+                                    />
                                     <Button
                                         variant="ghost"
                                         size="icon"
