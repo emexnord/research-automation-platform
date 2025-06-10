@@ -1,30 +1,25 @@
 services:
-  mongodb:
-    image: mongo:latest
+  db:
+    image: postgres
+    restart: always
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=root
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=research_automation_platform
+    container_name: postgres
     volumes:
-      - mongo-data:/data/db
+      - ./pgdata:/var/lib/postgresql/data
     ports:
-      - 27017:27017
+      - '5432:5432'
 
-  mongo-express:
-    image: mongo-express:latest
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    container_name: nest-pgadmin4
     environment:
-      - ME_CONFIG_MONGODB_SERVER=mongodb
-      #- ME_CONFIG_MONGODB_ENABLE_ADMIN=true
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=root
-      - ME_CONFIG_MONGODB_PORT=27017
-      - ME_CONFIG_BASICAUTH_USERNAME=root
-      - ME_CONFIG_BASICAUTH_PASSWORD=root
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=pgadmin4
     ports:
-      - 8081:8081
+      - '5050:80'
     depends_on:
-      - mongodb
-
-# Define named volumes
-volumes:
-  mongo-data:
-    driver: local
+      - db
