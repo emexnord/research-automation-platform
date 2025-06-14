@@ -20,14 +20,7 @@ import { TokenService } from '../shared/token.service';
 import { TokenType } from '../shared/enums/token-type.enum';
 import { VerifyEmailInputDto } from './dto/verify-email-input.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { GetUsersDto } from './dto/get-users.dto';
-import { PaginatedUsersDto } from './dto/paginated-users.dto';
 import { generateSalt, hashPassword } from 'src/utils/password';
-import { EmailService } from '../shared/email.service';
-import { UsersInfo } from './entities/users_info.entity';
-import { UserInfoDto } from './dto/user-info.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
 const config = configuration();
 
@@ -55,6 +48,9 @@ export class UserService {
   async login(creadentials: LoginDto): Promise<AuthTokenOutput> {
     const { email, password } = creadentials;
     const user = await this.userRepository.findOneWithSensitiveFields({ email: email.toLowerCase() });
+  async login(credentials: LoginDto): Promise<AuthTokenOutput> {
+    const { email, password } = credentials;
+    const user = await this.userRepository.findOneWithSensitiveFields(email);
 
     if (!user) {
       throw new NotFoundException('User not found');

@@ -63,8 +63,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <SidebarMenuItem>
                         <SidebarMenuButton
                             className='mt-2 cursor-pointer overflow-visible rounded-lg'
-                            onClick={() => window.open('/form', '_self')}
-                            title='Tasks'>
+                            onClick={() => window.open('/forms', '_self')}
+                            title='Forms'>
                             <div className='mx-1'>
                                 <SquarePen size={20} />
                             </div>
@@ -80,17 +80,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                 <SquarePen size={20} />
                             </div>
                             <span className='text-md'>Files</span>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            className='mt-2 cursor-pointer overflow-visible rounded-lg'
-                            onClick={() => window.open('/task', '_self')}
-                            title='Tasks'>
-                            <div className='mx-1'>
-                                <SquarePen size={20} />
-                            </div>
-                            <span className='text-md'>Tasks</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>

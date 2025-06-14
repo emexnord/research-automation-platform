@@ -9,6 +9,8 @@ import { UserModule } from './modules/user/user.module';
 import { FilesModule } from './modules/files/files.module';
 import { FoldersModule } from './modules/folders/folders.module';
 import { SharedLinksModule } from './modules/shared-links/shared-links.module';
+import { FormModule } from './modules/form/form.module';
+import { ResponseModule } from './modules/response/response.module';
 
 const config = configuration();
 
@@ -24,6 +26,8 @@ const config = configuration();
     FilesModule,
     FoldersModule,
     SharedLinksModule,
+    FormModule,
+    ResponseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
