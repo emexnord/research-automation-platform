@@ -244,6 +244,7 @@ export default function JiraClone() {
                     count: column.tasks.length - 1
                 };
             }
+
             if (column.id === destination.droppableId) {
                 const newTasks = [...column.tasks];
                 newTasks.splice(destination.index, 0, task);
@@ -254,6 +255,8 @@ export default function JiraClone() {
                     count: newTasks.length
                 };
             }
+
+            return column;
         });
 
         setColumns(newColumns);
