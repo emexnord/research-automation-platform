@@ -16,7 +16,7 @@ export class Question {
   formId: string;
 
   @Column()
-  question: string;
+  content: string;
 
   @Column()
   type: QuestionType;

@@ -4,28 +4,21 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
 } from 'typeorm';
-import { Question } from './question.entity';
 
-@Entity('form')
-export class Form {
+@Entity('answer')
+export class Answer {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
-  teamId: string;
+  responseId: string;
 
   @Column()
-  owner: string;
+  questionId: string;
 
   @Column({ type: 'text' })
-  title: string;
-
-  @OneToMany(() => Question, (question) => question.formId, {
-    cascade: true,
-  })
-  questions: Question[];
+  content: string;
 
   @CreateDateColumn()
   createdAt: Date;

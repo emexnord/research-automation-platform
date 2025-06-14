@@ -1,23 +1,52 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Response } from './entities/response.entity';
+import { Answer } from './entities/answer.entity';
+import { CreateResponseDto } from './dto/create-response.dto';
 
 @Injectable()
 export class ResponseService {
-  createResponse(data: any): any {
-    return { message: 'Response created', data };
+  constructor(
+    @InjectRepository(Response)
+    private responseRepository: Repository<Response>,
+
+    @InjectRepository(Answer)
+    private answerRepository: Repository<Answer>,
+  ) {}
+
+  async createResponse(dto: CreateResponseDto): Promise<Response> {
+    const { formId, userEmail, answers } = dto;
+
+    const response = this.responseRepository.create({
+      formId,
+      userEmail,
+      answers,
+    });
+
+    return await this.responseRepository.save(response);
   }
 
-  getResponseById(id: string): any {
-    // Implement logic to retrieve a form by ID
-    return { id, name: 'Sample Response' };
+  async getResponseById(id: string): Promise<Response> {
+    const response = await this.responseRepository.findOne({
+      where: { id },
+      relations: ['answers'],
+    });
+
+    if (!response) {
+      throw new NotFoundException(`Response with ID ${id} not found`);
+    }
+
+    return response;
   }
 
-  updateResponse(id: string, data: any): any {
-    // Implement form update logic here
-    return { message: 'Response updated', id, data };
-  }
+  async getResponsesByFormId(formId: string): Promise<Response[]> {
+    const responses = await this.responseRepository.find({
+      where: { formId },
+      relations: ['answers'],
+      order: { createdAt: 'DESC' },
+    });
 
-  deleteResponse(id: string): any {
-    // Implement form deletion logic here
-    return { message: 'Response deleted', id };
+    return responses;
   }
 }
