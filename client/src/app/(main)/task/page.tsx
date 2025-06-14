@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-
+import { DragDropContext, Draggable, Droppable, DropResult } from '@hello-pangea/dnd';
 import { Avatar, AvatarFallback, AvatarImage } from '@/registry/new-york-v4/ui/avatar';
 import { Badge } from '@/registry/new-york-v4/ui/badge';
 import { Button } from '@/registry/new-york-v4/ui/button';
@@ -13,8 +13,6 @@ import {
     DropdownMenuTrigger
 } from '@/registry/new-york-v4/ui/dropdown-menu';
 import { Input } from '@/registry/new-york-v4/ui/input';
-import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
-
 import {
     AlertCircle,
     BarChart3,
@@ -219,10 +217,10 @@ const teamMembers = [
 ];
 
 export default function JiraClone() {
-    const [columns, setColumns] = useState(initialData);
+    const [columns, setColumns] = useState<Column[]>(initialData);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const onDragEnd = (result: any) => {
+    const onDragEnd = (result: DropResult) => {
         const { destination, source, draggableId } = result;
 
         if (!destination) return;
@@ -254,6 +252,7 @@ export default function JiraClone() {
                     count: newTasks.length
                 };
             }
+            return column; // Return unchanged column for other cases
         });
 
         setColumns(newColumns);

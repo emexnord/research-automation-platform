@@ -150,7 +150,12 @@ export function FileManager() {
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            onClick={() => window.open(`/api/files/${file.id}`, '_blank')}
+                                            onClick={() => {
+                                                const link = document.createElement('a');
+                                                link.href = `/api/files/${file.id}`;
+                                                link.download = file.name;
+                                                link.click();
+                                            }}
                                         >
                                             <Download className="h-4 w-4" />
                                         </Button>
