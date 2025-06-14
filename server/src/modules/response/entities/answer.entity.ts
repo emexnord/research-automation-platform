@@ -4,7 +4,9 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
 } from 'typeorm';
+import { Response } from './response.entity';
 
 @Entity('answer')
 export class Answer {
@@ -12,6 +14,7 @@ export class Answer {
   id: string;
 
   @Column()
+  @ManyToOne(() => Response, (response) => response.id)
   responseId: string;
 
   @Column()

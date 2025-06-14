@@ -9,4 +9,7 @@ export class CreateFormDto {
   @ValidateNested({ each: true })
   @Type(() => CreateQuestionDto)
   questions: CreateQuestionDto[];
+
+  @IsString()
+  teamId: string;
 }

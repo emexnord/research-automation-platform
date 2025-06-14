@@ -22,9 +22,10 @@ export class Form {
   @Column({ type: 'text' })
   title: string;
 
-  @OneToMany(() => Question, (question) => question.formId, {
-    cascade: true,
-  })
+  @Column({ type: 'text', nullable: true })
+  context?: string;
+
+  @OneToMany(() => Question, (question) => question.formId, { cascade: true })
   questions: Question[];
 
   @CreateDateColumn()

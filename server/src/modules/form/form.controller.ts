@@ -11,6 +11,7 @@ import { CreateFormDto } from './dto/create-form.dto';
 import { Form } from './entities/form.entity';
 import { GetUser } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
+import { GenerateAIFormDto } from './dto/generate-form.dto';
 
 @Controller('form')
 export class FormController {
@@ -22,6 +23,20 @@ export class FormController {
     @GetUser() user: User,
   ): Promise<Form> {
     return this.formService.createForm(user.id, createFormDto);
+  }
+
+  @Post('ai')
+  async generateFormFromAI(
+    @GetUser() user: User,
+    @Body() generateAIFormDto: GenerateAIFormDto,
+  ): Promise<Form> {
+    const { teamId, context, numberOfQuestions } = generateAIFormDto;
+    return this.formService.generateFormFromAI(
+      user.id,
+      teamId,
+      context,
+      numberOfQuestions,
+    );
   }
 
   @Get(':id')

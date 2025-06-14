@@ -4,8 +4,10 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
 } from 'typeorm';
 import { QuestionType } from './question.type';
+import { Form } from './form.entity';
 
 @Entity('question')
 export class Question {
@@ -13,6 +15,7 @@ export class Question {
   id: string;
 
   @Column()
+  @ManyToOne(() => Form, (form) => form.id)
   formId: string;
 
   @Column()
@@ -21,8 +24,8 @@ export class Question {
   @Column()
   type: QuestionType;
 
-  @Column({ type: 'jsonb' }) // Required for MULTIPLE_CHOICE, CHECKBOXES, and DROPDOWN
-  options?: string[];
+  @Column({ type: 'jsonb', nullable: true }) // Required for MULTIPLE_CHOICE, CHECKBOXES, and DROPDOWN
+  options?: string[] | null;
 
   @Column()
   isRequired: boolean;

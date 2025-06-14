@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Form } from './entities/form.entity';
 import { Question } from './entities/question.entity';
 import { CreateFormDto } from './dto/create-form.dto';
+import { GeneratedQuestion } from './entities/question.type';
+import { GeminiService } from './ai.service';
 
 @Injectable()
 export class FormService {
@@ -13,13 +15,22 @@ export class FormService {
 
     @InjectRepository(Question)
     private questionRepository: Repository<Question>,
+    private geminiService: GeminiService,
   ) {}
 
   async createForm(owner: string, createFormDto: CreateFormDto): Promise<Form> {
     const form = this.formRepository.create({
       owner,
       title: createFormDto.title,
-      questions: createFormDto.questions,
+      teamId: createFormDto.teamId,
+      questions: createFormDto.questions.map((q) =>
+        this.questionRepository.create({
+          content: q.content,
+          type: q.type,
+          options: q.options,
+          isRequired: q.isRequired,
+        }),
+      ),
     });
 
     return await this.formRepository.save(form);
@@ -42,5 +53,32 @@ export class FormService {
     return await this.formRepository.find({
       where: { teamId },
     });
+  }
+
+  async generateFormFromAI(
+    userId: string,
+    teamId: string,
+    context: string,
+    numberOfQuestions: number,
+  ): Promise<Form> {
+    const questionsJson: GeneratedQuestion[] =
+      await this.geminiService.generateQuestions(context, numberOfQuestions);
+
+    const form = this.formRepository.create({
+      owner: userId,
+      title: `AI Generated Form - ${context}`,
+      context,
+      teamId,
+      questions: questionsJson.map((q) =>
+        this.questionRepository.create({
+          content: q.question,
+          type: q.type,
+          options: q.options,
+          isRequired: q.required,
+        }),
+      ),
+    });
+
+    return await this.formRepository.save(form);
   }
 }

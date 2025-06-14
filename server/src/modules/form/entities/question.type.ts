@@ -5,3 +5,11 @@ export type QuestionType =
   | 'CHECKBOXES'
   | 'DROPDOWN'
   | 'IMAGE_UPLOAD'; // for example,in social media reporting
+
+export type GeneratedQuestion = {
+  id: string;
+  question: string;
+  type: QuestionType;
+  options?: string[];
+  required: boolean;
+};
