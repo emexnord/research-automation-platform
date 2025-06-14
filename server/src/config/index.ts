@@ -40,6 +40,9 @@ const configSchema = z.object({
   DB_USERNAME: z.string(),
   DB_PASSWORD: z.string(),
   DB_NAME: z.string(),
+
+  // Gemini
+  GEMINI_API_KEY: z.string().optional().default(''),
 });
 
 // Parse and validate environment variables
@@ -77,6 +80,9 @@ const configuration = () => ({
     accessAlgorithms: config.JWT_ALGORITHMS,
     accessTokenExpiry: config.JWT_ACCESS_TOKEN_EXPIRY,
     refreshTokenExpiry: config.JWT_REFRESH_TOKEN_EXPIRY,
+  },
+  gemini: {
+    apiKey: config.GEMINI_API_KEY,
   },
 });
 

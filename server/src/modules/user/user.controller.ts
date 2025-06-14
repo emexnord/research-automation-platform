@@ -19,9 +19,6 @@ import { SendVerificationEmailDto } from './dto/send-verification-email.dto';
 import { GetUser } from './decorators/user.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
-import { PaginatedUsersDto } from './dto/paginated-users.dto';
-import { GetUsersDto } from './dto/get-users.dto';
-import { AdminGuard } from './guards/admin.guard';
 
 @Controller('user')
 export class UserController {
@@ -77,11 +74,5 @@ export class UserController {
     @GetUser() user: User,
   ): Promise<User> {
     return await this.userService.update(user.id, updateUserDto);
-  }
-
-  @Get('admin/users')
-  @UseGuards(AdminGuard)
-  async getUsers(@Query() query: GetUsersDto): Promise<PaginatedUsersDto> {
-    return this.userService.getUsers(query);
   }
 }

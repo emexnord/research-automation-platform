@@ -6,6 +6,8 @@ import { DatabaseModule } from './modules/db/database.module';
 import configuration from './config';
 import { JwtModule } from './modules/jwt/jwt.module';
 import { UserModule } from './modules/user/user.module';
+import { FormModule } from './modules/form/form.module';
+import { ResponseModule } from './modules/response/response.module';
 
 const config = configuration();
 
@@ -18,6 +20,8 @@ const config = configuration();
     UserModule,
     DatabaseModule,
     JwtModule,
+    FormModule,
+    ResponseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
