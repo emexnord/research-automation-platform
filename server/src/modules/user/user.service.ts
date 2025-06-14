@@ -20,8 +20,6 @@ import { TokenService } from '../shared/token.service';
 import { TokenType } from '../shared/enums/token-type.enum';
 import { VerifyEmailInputDto } from './dto/verify-email-input.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { GetUsersDto } from './dto/get-users.dto';
-import { PaginatedUsersDto } from './dto/paginated-users.dto';
 import { generateSalt, hashPassword } from 'src/utils/password';
 
 const config = configuration();
@@ -44,12 +42,9 @@ export class UserService {
     return this.userRepository.findByEmail(normalizedEmail);
   }
 
-  async login(creadentials: LoginDto): Promise<AuthTokenOutput> {
-    const { handle, password } = creadentials;
-    const user = await this.userRepository.findOneWithSensitiveFields({
-      username: handle,
-      email: handle,
-    });
+  async login(credentials: LoginDto): Promise<AuthTokenOutput> {
+    const { email, password } = credentials;
+    const user = await this.userRepository.findOneWithSensitiveFields(email);
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -306,42 +301,5 @@ export class UserService {
     } catch (err) {
       return err;
     }
-  }
-
-  async getUsers(query: GetUsersDto): Promise<PaginatedUsersDto> {
-    const { search, role, isVerified, page = 1, limit = 10 } = query;
-    const skip = (page - 1) * limit;
-
-    // Build filter object
-    const filter: any = {};
-
-    if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { username: { $regex: search, $options: 'i' } },
-      ];
-    }
-
-    if (role) {
-      filter.role = role;
-    }
-
-    if (typeof isVerified === 'boolean') {
-      filter.isVerified = isVerified;
-    }
-
-    const [users, total] = await Promise.all([
-      this.userRepository.findWithPagination(filter, skip, limit),
-      this.userRepository.countDocuments(filter),
-    ]);
-
-    return {
-      data: users,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
   }
 }
