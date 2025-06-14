@@ -1,0 +1,10 @@
+{
+    "scripts": {
+      "server": "pnpm --filter ./server start:dev",
+      "client": "pnpm --filter ./client dev",
+      "dev": "concurrently \"pnpm server\" \"pnpm client\""
+    },
+    "devDependencies": {
+      "concurrently": "^9.1.2"
+    }
+  } 
