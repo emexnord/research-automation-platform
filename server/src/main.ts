@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,6 +12,16 @@ async function bootstrap() {
       transform: true, // Automatically transform payloads to DTO instances
     }),
   );
+
+  // Swagger setup
+  const config = new DocumentBuilder()
+    .setTitle('Research Automation Platform API')
+    .setDescription('API documentation for file, folder, and sharing endpoints')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api-docs', app, document);
 
   app.enableCors({
     origin: true, // Allow all origins

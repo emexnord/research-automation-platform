@@ -23,6 +23,11 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { GetUsersDto } from './dto/get-users.dto';
 import { PaginatedUsersDto } from './dto/paginated-users.dto';
 import { generateSalt, hashPassword } from 'src/utils/password';
+import { EmailService } from '../shared/email.service';
+import { UsersInfo } from './entities/users_info.entity';
+import { UserInfoDto } from './dto/user-info.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 const config = configuration();
 
@@ -35,6 +40,9 @@ export class UserService {
     private readonly jwtService: JwtAuthService,
     private readonly userRepository: UserRepository,
     private readonly tokenService: TokenService,
+    private readonly emailService: EmailService,
+    @InjectRepository(UsersInfo)
+    private readonly usersInfoRepository: Repository<UsersInfo>,
   ) {
     this.googleClient = new OAuth2Client(config.google.clientId);
   }
@@ -45,11 +53,8 @@ export class UserService {
   }
 
   async login(creadentials: LoginDto): Promise<AuthTokenOutput> {
-    const { handle, password } = creadentials;
-    const user = await this.userRepository.findOneWithSensitiveFields({
-      username: handle,
-      email: handle,
-    });
+    const { email, password } = creadentials;
+    const user = await this.userRepository.findOneWithSensitiveFields({ email: email.toLowerCase() });
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -149,8 +154,8 @@ export class UserService {
     }
   }
 
-  async register(registerInputDto: RegisterInputDto): Promise<User> {
-    const { email, password } = registerInputDto;
+  async register(registerInputDto: RegisterInputDto & Partial<UserInfoDto>): Promise<User> {
+    const { email, password, occupation, industry, years_of_experience } = registerInputDto;
     const normalizedEmail = email.toLowerCase();
     const isUserFound = await this.userRepository.findByEmail(normalizedEmail);
 
@@ -167,17 +172,20 @@ export class UserService {
       salt,
     });
 
-    // console.log('user', user);
+    // Create users_info if any info is provided
+    if (occupation || industry || years_of_experience) {
+      await this.usersInfoRepository.save({
+        email: normalizedEmail,
+        occupation,
+        industry,
+        years_of_experience,
+      });
+    }
 
     const verification_token =
       await this.tokenService.createEmailVerificationToken(user.id.toString());
 
-    // Send verification email
-    this.logger.log(`otp ${verification_token.token}`);
-    // await this.emailService.sendEmailVerificationOTP({
-    //   email: user.email,
-    //   otp: verification_token.token,
-    // });
+    await this.emailService.sendVerificationEmail(user.email, verification_token.token);
 
     return user;
   }
@@ -193,10 +201,7 @@ export class UserService {
     }
     const verification_token =
       await this.tokenService.createEmailVerificationToken(user.id.toString());
-    // await this.emailService.sendEmailVerificationOTP({
-    //   email: user.email,
-    //   otp: verification_token.token,
-    // });
+    await this.emailService.sendVerificationEmail(user.email, verification_token.token);
 
     return user;
   }
@@ -227,7 +232,7 @@ export class UserService {
       throw new GoneException('Verification token expired'); // 410 Gone exeption when token is expired
     }
 
-    // await this.emailService.sendWelcomeEmail(email);
+    await this.emailService.sendWelcomeEmail(email);
     await this.tokenService.deleteTokenById(verification_token.id);
 
     const userId = verification_token.userId;
@@ -246,10 +251,7 @@ export class UserService {
     );
 
     const resetLink = `${config.client.resetPasswordUrl}?code=${token.token}&email=${user.email}`;
-    // await this.emailService.sendPasswordRecoveryEmail({
-    //   email: user.email,
-    //   link: resetLink,
-    // });
+    await this.emailService.sendPasswordRecoveryEmail(user.email, resetLink);
   }
 
   async resetPassword({
@@ -343,5 +345,39 @@ export class UserService {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async getProfile(email: string) {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) throw new NotFoundException('User not found');
+    const userInfo = await this.usersInfoRepository.findOne({ where: { email } });
+    return { ...user, userInfo };
+  }
+
+  async updateProfile(email: string, updateUserDto: Partial<User> & Partial<UserInfoDto>) {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) throw new NotFoundException('User not found');
+    // Update user fields
+    const { occupation, industry, years_of_experience, ...userFields } = updateUserDto;
+    await this.userRepository.updateById(user.id, userFields);
+    // Update or create users_info
+    let userInfo = await this.usersInfoRepository.findOne({ where: { email } });
+    if (occupation || industry || years_of_experience) {
+      if (userInfo) {
+        await this.usersInfoRepository.update(userInfo.id, {
+          occupation,
+          industry,
+          years_of_experience,
+        });
+      } else {
+        await this.usersInfoRepository.save({
+          email,
+          occupation,
+          industry,
+          years_of_experience,
+        });
+      }
+    }
+    return this.getProfile(email);
   }
 }

@@ -22,7 +22,11 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { PaginatedUsersDto } from './dto/paginated-users.dto';
 import { GetUsersDto } from './dto/get-users.dto';
 import { AdminGuard } from './guards/admin.guard';
+import { UserInfoDto } from './dto/user-info.dto';
+import { JwtAuthGuard } from '../jwt/jwt-auth.guard';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiBody, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('User')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -52,36 +56,34 @@ export class UserController {
     return await this.userService.verifyEmail(verifyEmailInput);
   }
 
-  @Get('verify-email/send')
-  async sendVerificationEmail(
-    @Query() dto: SendVerificationEmailDto,
-  ): Promise<User | null> {
-    return await this.userService.sendVerificationEmail(dto.email);
-  }
-
-  @Get('forgot-password')
-  async requestPasswordRecovery(@Query() dto: ForgotPasswordDto) {
-    return this.userService.requestPasswordRecovery(dto.email);
+  @Post('forgot-password')
+  async requestPasswordRecovery(@Body() dto: ForgotPasswordDto) {
+    return await this.userService.requestPasswordRecovery(dto.email);
   }
 
   @Post('reset-password')
   async resetPassword(
     @Body() resetPasswordData: ResetPasswordDto,
   ): Promise<User | null> {
-    return this.userService.resetPassword(resetPasswordData);
+    return await this.userService.resetPassword(resetPasswordData);
+  }
+  
+  @Get('profile')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiResponse({ status: 200, description: 'User profile returned.' })
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@GetUser() user: User) {
+    return this.userService.getProfile(user.email);
   }
 
-  @Put()
-  async update(
-    @Body() updateUserDto: UpdateUserDto,
-    @GetUser() user: User,
-  ): Promise<User> {
-    return await this.userService.update(user.id, updateUserDto);
-  }
-
-  @Get('admin/users')
-  @UseGuards(AdminGuard)
-  async getUsers(@Query() query: GetUsersDto): Promise<PaginatedUsersDto> {
-    return this.userService.getUsers(query);
+  @Put('profile')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update current user profile and info' })
+  @ApiBody({ type: UserInfoDto })
+  @ApiResponse({ status: 200, description: 'User profile updated.' })
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(@GetUser() user: User, @Body() updateUserDto: Partial<User> & Partial<UserInfoDto>) {
+    return this.userService.updateProfile(user.email, updateUserDto);
   }
 }

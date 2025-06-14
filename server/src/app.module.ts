@@ -6,6 +6,9 @@ import { DatabaseModule } from './modules/db/database.module';
 import configuration from './config';
 import { JwtModule } from './modules/jwt/jwt.module';
 import { UserModule } from './modules/user/user.module';
+import { FilesModule } from './modules/files/files.module';
+import { FoldersModule } from './modules/folders/folders.module';
+import { SharedLinksModule } from './modules/shared-links/shared-links.module';
 
 const config = configuration();
 
@@ -18,6 +21,9 @@ const config = configuration();
     UserModule,
     DatabaseModule,
     JwtModule,
+    FilesModule,
+    FoldersModule,
+    SharedLinksModule,
   ],
   controllers: [AppController],
   providers: [AppService],
