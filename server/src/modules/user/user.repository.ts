@@ -25,13 +25,11 @@ export class UserRepository {
     return this.userRepository.findOne({ where: filter });
   }
 
-  async findOneWithSensitiveFields(
-    filter: Partial<User>,
-  ): Promise<User | null> {
+  async findOneWithSensitiveFields(email: string): Promise<User | null> {
     return this.userRepository
       .createQueryBuilder('user')
       .addSelect(['user.password', 'user.salt'])
-      .where(filter)
+      .where({ email })
       .getOne();
   }
 
