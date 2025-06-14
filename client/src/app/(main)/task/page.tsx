@@ -6,7 +6,7 @@ import { toast } from '@/components/ui/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/registry/new-york-v4/ui/avatar';
 import { Badge } from '@/registry/new-york-v4/ui/badge';
 import { Button } from '@/registry/new-york-v4/ui/button';
-import { Card, CardContent } from '@/registry/new-york-v4/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/registry/new-york-v4/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/registry/new-york-v4/ui/dialog';
 import {
     DropdownMenu,
@@ -17,12 +17,30 @@ import {
 } from '@/registry/new-york-v4/ui/dropdown-menu';
 import { Input } from '@/registry/new-york-v4/ui/input';
 import { Label } from '@/registry/new-york-v4/ui/label';
+import { ScrollArea } from '@/registry/new-york-v4/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/registry/new-york-v4/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/registry/new-york-v4/ui/tabs';
 import { Textarea } from '@/registry/new-york-v4/ui/textarea';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 
-import { Edit, MoreHorizontal, Plus, Search, Trash2, UserCheck, UserPlus, UserX, Users } from 'lucide-react';
+import {
+    ArrowRight,
+    Calendar,
+    Clock,
+    Edit,
+    Eye,
+    History,
+    MessageSquare,
+    MoreHorizontal,
+    Paperclip,
+    Plus,
+    Search,
+    Trash2,
+    UserCheck,
+    UserPlus,
+    UserX,
+    Users
+} from 'lucide-react';
 
 interface User {
     id: string;
@@ -31,6 +49,50 @@ interface User {
     avatar: string;
     initials: string;
     role: 'admin' | 'member' | 'viewer';
+}
+
+interface Comment {
+    id: string;
+    content: string;
+    authorId: string;
+    createdAt: string;
+    updatedAt?: string;
+}
+
+interface Attachment {
+    id: string;
+    name: string;
+    size: number;
+    type: string;
+    url: string;
+    uploadedBy: string;
+    uploadedAt: string;
+}
+
+interface TimeEntry {
+    id: string;
+    description: string;
+    hours: number;
+    userId: string;
+    date: string;
+    createdAt: string;
+}
+
+interface Subtask {
+    id: string;
+    title: string;
+    completed: boolean;
+    assigneeId?: string;
+    createdAt: string;
+}
+
+interface ActivityEntry {
+    id: string;
+    type: 'created' | 'updated' | 'assigned' | 'commented' | 'moved' | 'completed';
+    description: string;
+    userId: string;
+    createdAt: string;
+    metadata?: any;
 }
 
 interface Task {
@@ -45,14 +107,24 @@ interface Task {
         textColor: string;
     }>;
     priority: 'low' | 'medium' | 'high';
+    status: 'todo' | 'progress' | 'review' | 'done';
     createdAt: string;
+    updatedAt?: string;
     dueDate?: string;
+    estimatedHours?: number;
+    actualHours?: number;
     assignmentHistory: Array<{
         assigneeId: string | null;
         assignedBy: string;
         assignedAt: string;
         action: 'assigned' | 'unassigned' | 'reassigned';
     }>;
+    comments: Comment[];
+    attachments: Attachment[];
+    timeEntries: TimeEntry[];
+    subtasks: Subtask[];
+    activity: ActivityEntry[];
+    relatedTasks: string[];
 }
 
 interface Column {
@@ -68,7 +140,7 @@ interface Project {
     name: string;
     description: string;
     color: string;
-    members: string[]; // User IDs
+    members: string[];
     columns: Column[];
     createdAt: string;
 }
@@ -151,7 +223,7 @@ const allUsers: User[] = [
     }
 ];
 
-// Mock projects data
+// Mock projects data with enhanced task details
 const initialProjects: Project[] = [
     {
         id: 'project-1',
@@ -170,11 +242,17 @@ const initialProjects: Project[] = [
                     {
                         id: 'task-1',
                         title: 'Design user authentication system',
-                        description: 'Create secure login and registration flow',
+                        description:
+                            'Create secure login and registration flow with OAuth integration and multi-factor authentication support',
                         taskId: 'RP-001',
                         assigneeId: 'user-2',
                         priority: 'high',
-                        createdAt: '2024-01-15',
+                        status: 'todo',
+                        createdAt: '2024-01-15T10:00:00Z',
+                        updatedAt: '2024-01-16T14:30:00Z',
+                        dueDate: '2024-02-15',
+                        estimatedHours: 40,
+                        actualHours: 12,
                         labels: [{ name: 'BACKEND', color: 'bg-blue-500', textColor: 'text-white' }],
                         assignmentHistory: [
                             {
@@ -183,24 +261,96 @@ const initialProjects: Project[] = [
                                 assignedAt: '2024-01-15T10:00:00Z',
                                 action: 'assigned'
                             }
-                        ]
-                    },
-                    {
-                        id: 'task-2',
-                        title: 'Research data visualization components',
-                        taskId: 'RP-002',
-                        assigneeId: 'user-3',
-                        priority: 'medium',
-                        createdAt: '2024-01-16',
-                        labels: [{ name: 'FRONTEND', color: 'bg-emerald-500', textColor: 'text-white' }],
-                        assignmentHistory: [
+                        ],
+                        comments: [
                             {
-                                assigneeId: 'user-3',
-                                assignedBy: 'user-1',
-                                assignedAt: '2024-01-16T09:00:00Z',
-                                action: 'assigned'
+                                id: 'comment-1',
+                                content: 'We should consider using Auth0 for this implementation',
+                                authorId: 'user-1',
+                                createdAt: '2024-01-15T11:00:00Z'
+                            },
+                            {
+                                id: 'comment-2',
+                                content: "Good idea! I'll research the integration options",
+                                authorId: 'user-2',
+                                createdAt: '2024-01-15T11:30:00Z'
                             }
-                        ]
+                        ],
+                        attachments: [
+                            {
+                                id: 'att-1',
+                                name: 'auth-flow-diagram.png',
+                                size: 245760,
+                                type: 'image/png',
+                                url: '/placeholder.svg',
+                                uploadedBy: 'user-1',
+                                uploadedAt: '2024-01-15T12:00:00Z'
+                            }
+                        ],
+                        timeEntries: [
+                            {
+                                id: 'time-1',
+                                description: 'Research authentication libraries',
+                                hours: 4,
+                                userId: 'user-2',
+                                date: '2024-01-16',
+                                createdAt: '2024-01-16T18:00:00Z'
+                            },
+                            {
+                                id: 'time-2',
+                                description: 'Initial setup and configuration',
+                                hours: 8,
+                                userId: 'user-2',
+                                date: '2024-01-17',
+                                createdAt: '2024-01-17T17:00:00Z'
+                            }
+                        ],
+                        subtasks: [
+                            {
+                                id: 'sub-1',
+                                title: 'Set up OAuth providers',
+                                completed: true,
+                                assigneeId: 'user-2',
+                                createdAt: '2024-01-15T10:30:00Z'
+                            },
+                            {
+                                id: 'sub-2',
+                                title: 'Implement login form',
+                                completed: false,
+                                assigneeId: 'user-2',
+                                createdAt: '2024-01-15T10:31:00Z'
+                            },
+                            {
+                                id: 'sub-3',
+                                title: 'Add password reset functionality',
+                                completed: false,
+                                createdAt: '2024-01-15T10:32:00Z'
+                            }
+                        ],
+                        activity: [
+                            {
+                                id: 'act-1',
+                                type: 'created',
+                                description: 'Task created',
+                                userId: 'user-1',
+                                createdAt: '2024-01-15T10:00:00Z'
+                            },
+                            {
+                                id: 'act-2',
+                                type: 'assigned',
+                                description: 'Assigned to Jane Smith',
+                                userId: 'user-1',
+                                createdAt: '2024-01-15T10:00:00Z'
+                            },
+                            {
+                                id: 'act-3',
+                                type: 'commented',
+                                description: 'Added a comment',
+                                userId: 'user-1',
+                                createdAt: '2024-01-15T11:00:00Z'
+                            }
+                        ],
+                        relatedTasks: ['task-3']
                     }
                 ]
             },
@@ -213,10 +363,16 @@ const initialProjects: Project[] = [
                     {
                         id: 'task-3',
                         title: 'Implement project management features',
+                        description:
+                            'Build comprehensive project management functionality including task creation, assignment, and tracking',
                         taskId: 'RP-003',
                         assigneeId: 'user-1',
                         priority: 'high',
-                        createdAt: '2024-01-10',
+                        status: 'progress',
+                        createdAt: '2024-01-10T08:00:00Z',
+                        dueDate: '2024-02-01',
+                        estimatedHours: 60,
+                        actualHours: 25,
                         labels: [{ name: 'FEATURE', color: 'bg-purple-500', textColor: 'text-white' }],
                         assignmentHistory: [
                             {
@@ -225,83 +381,61 @@ const initialProjects: Project[] = [
                                 assignedAt: '2024-01-10T08:00:00Z',
                                 action: 'assigned'
                             }
-                        ]
-                    }
-                ]
-            },
-            {
-                id: 'review',
-                title: 'IN REVIEW',
-                color: 'bg-gradient-to-br from-amber-50 to-amber-100',
-                headerColor: 'bg-amber-200',
-                tasks: []
-            },
-            {
-                id: 'done',
-                title: 'DONE',
-                color: 'bg-gradient-to-br from-green-50 to-green-100',
-                headerColor: 'bg-green-200',
-                tasks: [
-                    {
-                        id: 'task-4',
-                        title: 'Setup development environment',
-                        taskId: 'RP-004',
-                        assigneeId: 'user-4',
-                        priority: 'low',
-                        createdAt: '2024-01-05',
-                        labels: [{ name: 'SETUP', color: 'bg-gray-500', textColor: 'text-white' }],
-                        assignmentHistory: [
+                        ],
+                        comments: [],
+                        attachments: [],
+                        timeEntries: [
                             {
-                                assigneeId: 'user-4',
-                                assignedBy: 'user-1',
-                                assignedAt: '2024-01-05T14:00:00Z',
-                                action: 'assigned'
+                                id: 'time-3',
+                                description: 'Initial planning and architecture',
+                                hours: 8,
+                                userId: 'user-1',
+                                date: '2024-01-10',
+                                createdAt: '2024-01-10T17:00:00Z'
                             }
-                        ]
-                    }
-                ]
-            }
-        ]
-    },
-    {
-        id: 'project-2',
-        name: 'Data Analysis Tool',
-        description: 'Advanced analytics and reporting system',
-        color: 'from-green-500 to-teal-600',
-        members: ['user-1', 'user-5', 'user-6', 'user-7'],
-        createdAt: '2024-01-10',
-        columns: [
-            {
-                id: 'todo',
-                title: 'TO DO',
-                color: 'bg-gradient-to-br from-slate-50 to-slate-100',
-                headerColor: 'bg-slate-200',
-                tasks: [
-                    {
-                        id: 'task-5',
-                        title: 'Design analytics dashboard',
-                        taskId: 'DAT-001',
-                        assigneeId: 'user-5',
-                        priority: 'medium',
-                        createdAt: '2024-01-12',
-                        labels: [{ name: 'DESIGN', color: 'bg-pink-500', textColor: 'text-white' }],
-                        assignmentHistory: [
+                        ],
+                        subtasks: [
                             {
-                                assigneeId: 'user-5',
-                                assignedBy: 'user-1',
-                                assignedAt: '2024-01-12T11:00:00Z',
-                                action: 'assigned'
+                                id: 'sub-4',
+                                title: 'Design database schema',
+                                completed: true,
+                                assigneeId: 'user-1',
+                                createdAt: '2024-01-10T08:30:00Z'
+                            },
+                            {
+                                id: 'sub-5',
+                                title: 'Implement task CRUD operations',
+                                completed: true,
+                                assigneeId: 'user-1',
+                                createdAt: '2024-01-10T08:31:00Z'
+                            },
+                            {
+                                id: 'sub-6',
+                                title: 'Add drag and drop functionality',
+                                completed: false,
+                                assigneeId: 'user-1',
+                                createdAt: '2024-01-10T08:32:00Z'
                             }
-                        ]
+                        ],
+                        activity: [
+                            {
+                                id: 'act-4',
+                                type: 'created',
+                                description: 'Task created',
+                                userId: 'user-1',
+                                createdAt: '2024-01-10T08:00:00Z'
+                            },
+                            {
+                                id: 'act-5',
+                                type: 'moved',
+                                description: 'Moved to In Progress',
+                                userId: 'user-1',
+                                createdAt: '2024-01-12T09:00:00Z'
+                            }
+                        ],
+                        relatedTasks: ['task-1']
                     }
                 ]
-            },
-            {
-                id: 'progress',
-                title: 'IN PROGRESS',
-                color: 'bg-gradient-to-br from-blue-50 to-blue-100',
-                headerColor: 'bg-blue-200',
-                tasks: []
             },
             {
                 id: 'review',
@@ -330,10 +464,15 @@ export default function ResearchManagementTool() {
     const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
     const [isAssignTaskOpen, setIsAssignTaskOpen] = useState(false);
     const [isBulkAssignOpen, setIsBulkAssignOpen] = useState(false);
+    const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false);
+    const [selectedTaskForDetail, setSelectedTaskForDetail] = useState<Task | null>(null);
+    const [selectedTasksForBulkAssign, setSelectedTasksForBulkAssign] = useState<string[]>([]);
     const [selectedColumnId, setSelectedColumnId] = useState('');
     const [selectedTaskForAssignment, setSelectedTaskForAssignment] = useState<Task | null>(null);
-    const [selectedTasksForBulkAssign, setSelectedTasksForBulkAssign] = useState<string[]>([]);
     const [assigneeFilter, setAssigneeFilter] = useState<string>('all');
+    const [newComment, setNewComment] = useState('');
+    const [newTimeEntry, setNewTimeEntry] = useState({ description: '', hours: 0, date: '' });
+    const [newSubtask, setNewSubtask] = useState('');
 
     // New task form state
     const [newTask, setNewTask] = useState({
@@ -342,7 +481,8 @@ export default function ResearchManagementTool() {
         priority: 'medium' as const,
         assigneeId: '',
         labels: [] as string[],
-        dueDate: ''
+        dueDate: '',
+        estimatedHours: 0
     });
 
     // New project form state
@@ -355,7 +495,7 @@ export default function ResearchManagementTool() {
     // Get current project
     const currentProject = projects.find((p) => p.id === currentProjectId);
 
-    // Get user's accessible projects (projects where user is a member)
+    // Get user's accessible projects
     const userProjects = projects.filter((project) => project.members.includes(currentUser.id));
 
     // Get project members
@@ -364,7 +504,139 @@ export default function ResearchManagementTool() {
     // Get available users to add to project
     const availableUsers = allUsers.filter((user) => !currentProject?.members.includes(user.id));
 
-    // Assignment functionality
+    // Task detail functions
+    const addComment = () => {
+        if (!newComment.trim() || !selectedTaskForDetail) return;
+
+        const comment: Comment = {
+            id: `comment-${Date.now()}`,
+            content: newComment,
+            authorId: currentUser.id,
+            createdAt: new Date().toISOString()
+        };
+
+        const activity: ActivityEntry = {
+            id: `act-${Date.now()}`,
+            type: 'commented',
+            description: 'Added a comment',
+            userId: currentUser.id,
+            createdAt: new Date().toISOString()
+        };
+
+        updateTask(selectedTaskForDetail.id, {
+            comments: [...selectedTaskForDetail.comments, comment],
+            activity: [...selectedTaskForDetail.activity, activity]
+        });
+
+        setNewComment('');
+    };
+
+    const addTimeEntry = () => {
+        if (!newTimeEntry.description.trim() || !newTimeEntry.hours || !selectedTaskForDetail) return;
+
+        const timeEntry: TimeEntry = {
+            id: `time-${Date.now()}`,
+            description: newTimeEntry.description,
+            hours: newTimeEntry.hours,
+            userId: currentUser.id,
+            date: newTimeEntry.date || new Date().toISOString().split('T')[0],
+            createdAt: new Date().toISOString()
+        };
+
+        const currentActualHours = selectedTaskForDetail.actualHours || 0;
+        const newActualHours = currentActualHours + newTimeEntry.hours;
+
+        updateTask(selectedTaskForDetail.id, {
+            timeEntries: [...selectedTaskForDetail.timeEntries, timeEntry],
+            actualHours: newActualHours
+        });
+
+        setNewTimeEntry({ description: '', hours: 0, date: '' });
+    };
+
+    const addSubtask = () => {
+        if (!newSubtask.trim() || !selectedTaskForDetail) return;
+
+        const subtask: Subtask = {
+            id: `sub-${Date.now()}`,
+            title: newSubtask,
+            completed: false,
+            createdAt: new Date().toISOString()
+        };
+
+        updateTask(selectedTaskForDetail.id, {
+            subtasks: [...selectedTaskForDetail.subtasks, subtask]
+        });
+
+        setNewSubtask('');
+    };
+
+    const toggleSubtask = (subtaskId: string) => {
+        if (!selectedTaskForDetail) return;
+
+        const updatedSubtasks = selectedTaskForDetail.subtasks.map((subtask) =>
+            subtask.id === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
+        );
+
+        updateTask(selectedTaskForDetail.id, {
+            subtasks: updatedSubtasks
+        });
+    };
+
+    const updateTask = (taskId: string, updates: Partial<Task>) => {
+        const newProjects = projects.map((project) => {
+            if (project.id === currentProjectId) {
+                const newColumns = project.columns.map((column) => ({
+                    ...column,
+                    tasks: column.tasks.map((task) => {
+                        if (task.id === taskId) {
+                            const updatedTask = { ...task, ...updates, updatedAt: new Date().toISOString() };
+                            if (selectedTaskForDetail?.id === taskId) {
+                                setSelectedTaskForDetail(updatedTask);
+                            }
+
+                            return updatedTask;
+                        }
+
+                        return task;
+                    })
+                }));
+
+                return { ...project, columns: newColumns };
+            }
+
+            return project;
+        });
+
+        setProjects(newProjects);
+    };
+
+    const formatFileSize = (bytes: number) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+        return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const getRelatedTasks = (taskIds: string[]) => {
+        if (!currentProject) return [];
+        const allTasks = currentProject.columns.flatMap((col) => col.tasks);
+
+        return allTasks.filter((task) => taskIds.includes(task.id));
+    };
+
     const assignTask = (
         taskId: string,
         assigneeId: string | null,
@@ -385,11 +657,29 @@ export default function ResearchManagementTool() {
                                 action
                             };
 
-                            return {
+                            const activityEntry: ActivityEntry = {
+                                id: `act-${Date.now()}`,
+                                type: 'assigned',
+                                description: assigneeId
+                                    ? `Assigned to ${allUsers.find((u) => u.id === assigneeId)?.name}`
+                                    : 'Unassigned',
+                                userId: currentUser.id,
+                                createdAt: new Date().toISOString()
+                            };
+
+                            const updatedTask = {
                                 ...task,
                                 assigneeId: assigneeId || undefined,
-                                assignmentHistory: [...task.assignmentHistory, assignmentEntry]
+                                assignmentHistory: [...task.assignmentHistory, assignmentEntry],
+                                activity: [...task.activity, activityEntry],
+                                updatedAt: new Date().toISOString()
                             };
+
+                            if (selectedTaskForDetail?.id === taskId) {
+                                setSelectedTaskForDetail(updatedTask);
+                            }
+
+                            return updatedTask;
                         }
 
                         return task;
@@ -404,7 +694,6 @@ export default function ResearchManagementTool() {
 
         setProjects(newProjects);
 
-        // Show success message
         const assigneeName = assigneeId ? allUsers.find((u) => u.id === assigneeId)?.name : 'Unassigned';
         const taskTitle = currentProject.columns.flatMap((col) => col.tasks).find((task) => task.id === taskId)?.title;
 
@@ -448,6 +737,22 @@ export default function ResearchManagementTool() {
         const task = sourceColumn.tasks.find((task) => task.id === draggableId);
         if (!task) return;
 
+        // Add activity entry for task movement
+        const activityEntry: ActivityEntry = {
+            id: `act-${Date.now()}`,
+            type: 'moved',
+            description: `Moved from ${sourceColumn.title} to ${destColumn.title}`,
+            userId: currentUser.id,
+            createdAt: new Date().toISOString()
+        };
+
+        const updatedTask = {
+            ...task,
+            status: destColumn.id as Task['status'],
+            activity: [...task.activity, activityEntry],
+            updatedAt: new Date().toISOString()
+        };
+
         const newProjects = projects.map((project) => {
             if (project.id === currentProjectId) {
                 const newColumns = project.columns.map((column) => {
@@ -459,7 +764,7 @@ export default function ResearchManagementTool() {
                     }
                     if (column.id === destination.droppableId) {
                         const newTasks = [...column.tasks];
-                        newTasks.splice(destination.index, 0, task);
+                        newTasks.splice(destination.index, 0, updatedTask);
 
                         return {
                             ...column,
@@ -477,6 +782,10 @@ export default function ResearchManagementTool() {
         });
 
         setProjects(newProjects);
+
+        if (selectedTaskForDetail?.id === draggableId) {
+            setSelectedTaskForDetail(updatedTask);
+        }
     };
 
     const createTask = () => {
@@ -489,8 +798,11 @@ export default function ResearchManagementTool() {
             taskId: `${currentProject.name.substring(0, 2).toUpperCase()}-${String(Date.now()).slice(-3)}`,
             assigneeId: newTask.assigneeId || undefined,
             priority: newTask.priority,
+            status: selectedColumnId as Task['status'],
             createdAt: new Date().toISOString(),
             dueDate: newTask.dueDate || undefined,
+            estimatedHours: newTask.estimatedHours || undefined,
+            actualHours: 0,
             labels: newTask.labels.map((label) => ({
                 name: label,
                 color: 'bg-blue-500',
@@ -505,7 +817,21 @@ export default function ResearchManagementTool() {
                           action: 'assigned' as const
                       }
                   ]
-                : []
+                : [],
+            comments: [],
+            attachments: [],
+            timeEntries: [],
+            subtasks: [],
+            activity: [
+                {
+                    id: `act-${Date.now()}`,
+                    type: 'created',
+                    description: 'Task created',
+                    userId: currentUser.id,
+                    createdAt: new Date().toISOString()
+                }
+            ],
+            relatedTasks: []
         };
 
         const newProjects = projects.map((project) => {
@@ -534,7 +860,8 @@ export default function ResearchManagementTool() {
             priority: 'medium',
             assigneeId: '',
             labels: [],
-            dueDate: ''
+            dueDate: '',
+            estimatedHours: 0
         });
         setIsCreateTaskOpen(false);
     };
@@ -547,7 +874,7 @@ export default function ResearchManagementTool() {
             name: newProject.name,
             description: newProject.description,
             color: newProject.color,
-            members: [currentUser.id], // Creator is automatically added
+            members: [currentUser.id],
             createdAt: new Date().toISOString(),
             columns: [
                 {
@@ -609,7 +936,7 @@ export default function ResearchManagementTool() {
     };
 
     const removeMemberFromProject = (userId: string) => {
-        if (!currentProject || userId === currentUser.id) return; // Can't remove yourself
+        if (!currentProject || userId === currentUser.id) return;
 
         const newProjects = projects.map((project) => {
             if (project.id === currentProjectId) {
@@ -760,7 +1087,6 @@ export default function ResearchManagementTool() {
                     </div>
                     <p className='text-gray-600'>{currentProject.description}</p>
                 </div>
-
                 {/* Controls */}
                 <div className='mb-6 flex items-center justify-between rounded-lg bg-white p-4 shadow-sm'>
                     <div className='flex items-center space-x-4'>
@@ -791,7 +1117,7 @@ export default function ResearchManagementTool() {
                         </Select>
                         <div className='flex items-center -space-x-2'>
                             {projectMembers.slice(0, 4).map((member) => (
-                                <Avatar key={member.id} className='h-8 w-8 border-2 border-white !text-black'>
+                                <Avatar key={member.id} className='h-8 w-8 border-2 border-white'>
                                     <AvatarImage src={member.avatar || '/placeholder.svg'} />
                                     <AvatarFallback>{member.initials}</AvatarFallback>
                                 </Avatar>
@@ -1014,8 +1340,7 @@ export default function ResearchManagementTool() {
                         </Dialog>
                     </div>
                 </div>
-
-                {/* Assignment Dialog */}
+                ;{/* Assignment Dialog */}
                 <Dialog open={isAssignTaskOpen} onOpenChange={setIsAssignTaskOpen}>
                     <DialogContent>
                         <DialogHeader>
@@ -1057,8 +1382,508 @@ export default function ResearchManagementTool() {
                         )}
                     </DialogContent>
                 </Dialog>
+                ;{/* Task Detail Dialog */}
+                <Dialog open={isTaskDetailOpen} onOpenChange={setIsTaskDetailOpen}>
+                    <DialogContent className='!sm:max-w-full max-h-[90vh] !overflow-auto'>
+                        <DialogHeader>
+                            <DialogTitle className='flex items-center space-x-2'>
+                                <span>{selectedTaskForDetail?.taskId}</span>
+                                <Badge
+                                    className={
+                                        selectedTaskForDetail?.priority === 'high'
+                                            ? 'bg-red-500'
+                                            : selectedTaskForDetail?.priority === 'medium'
+                                              ? 'bg-yellow-500'
+                                              : 'bg-green-500'
+                                    }>
+                                    {selectedTaskForDetail?.priority}
+                                </Badge>
+                            </DialogTitle>
+                        </DialogHeader>
+                        {selectedTaskForDetail && (
+                            <div className='grid h-full grid-cols-3 gap-6'>
+                                {/* Main Content */}
+                                <div className='col-span-2 space-y-6'>
+                                    <div>
+                                        <h3 className='mb-2 text-xl font-semibold'>{selectedTaskForDetail.title}</h3>
+                                        {selectedTaskForDetail.description && (
+                                            <p className='mb-4 text-gray-600'>{selectedTaskForDetail.description}</p>
+                                        )}
+                                        <div className='flex flex-wrap gap-2'>
+                                            {selectedTaskForDetail.labels.map((label, index) => (
+                                                <Badge key={index} className={`${label.color} ${label.textColor}`}>
+                                                    {label.name}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    </div>
 
-                {/* Kanban Board */}
+                                    <Tabs defaultValue='comments' className='w-full'>
+                                        <TabsList className='grid w-full grid-cols-5'>
+                                            <TabsTrigger value='comments'>Comments</TabsTrigger>
+                                            <TabsTrigger value='subtasks'>Subtasks</TabsTrigger>
+                                            <TabsTrigger value='time'>Time</TabsTrigger>
+                                            <TabsTrigger value='attachments'>Files</TabsTrigger>
+                                            <TabsTrigger value='activity'>Activity</TabsTrigger>
+                                        </TabsList>
+
+                                        <TabsContent value='comments' className='space-y-4'>
+                                            <div className='max-h-64 space-y-4 overflow-y-auto'>
+                                                {selectedTaskForDetail.comments.map((comment) => {
+                                                    const author = allUsers.find((u) => u.id === comment.authorId);
+
+                                                    return (
+                                                        <div key={comment.id} className='flex space-x-3'>
+                                                            <Avatar className='h-8 w-8'>
+                                                                <AvatarImage
+                                                                    src={author?.avatar || '/placeholder.svg'}
+                                                                />
+                                                                <AvatarFallback>{author?.initials}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div className='flex-1'>
+                                                                <div className='mb-1 flex items-center space-x-2'>
+                                                                    <span className='text-sm font-medium'>
+                                                                        {author?.name}
+                                                                    </span>
+                                                                    <span className='text-xs text-gray-500'>
+                                                                        {formatDate(comment.createdAt)}
+                                                                    </span>
+                                                                </div>
+                                                                <p className='text-sm text-gray-700'>
+                                                                    {comment.content}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                            <div className='flex space-x-2'>
+                                                <Textarea
+                                                    placeholder='Add a comment...'
+                                                    value={newComment}
+                                                    onChange={(e) => setNewComment(e.target.value)}
+                                                    className='flex-1'
+                                                />
+                                                <Button onClick={addComment} disabled={!newComment.trim()}>
+                                                    <MessageSquare className='h-4 w-4' />
+                                                </Button>
+                                            </div>
+                                        </TabsContent>
+
+                                        <TabsContent value='subtasks' className='space-y-4'>
+                                            <div className='max-h-64 space-y-2 overflow-y-auto'>
+                                                {selectedTaskForDetail.subtasks.map((subtask) => {
+                                                    const assignee = subtask.assigneeId
+                                                        ? allUsers.find((u) => u.id === subtask.assigneeId)
+                                                        : null;
+
+                                                    return (
+                                                        <div
+                                                            key={subtask.id}
+                                                            className='flex items-center space-x-3 rounded border p-2'>
+                                                            <input
+                                                                type='checkbox'
+                                                                checked={subtask.completed}
+                                                                onChange={() => toggleSubtask(subtask.id)}
+                                                            />
+                                                            <span
+                                                                className={`flex-1 ${subtask.completed ? 'text-gray-500 line-through' : ''}`}>
+                                                                {subtask.title}
+                                                            </span>
+                                                            {assignee && (
+                                                                <Avatar className='h-6 w-6'>
+                                                                    <AvatarImage
+                                                                        src={assignee.avatar || '/placeholder.svg'}
+                                                                    />
+                                                                    <AvatarFallback className='text-xs'>
+                                                                        {assignee.initials}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                            <div className='flex space-x-2'>
+                                                <Input
+                                                    placeholder='Add a subtask...'
+                                                    value={newSubtask}
+                                                    onChange={(e) => setNewSubtask(e.target.value)}
+                                                    className='flex-1'
+                                                />
+                                                <Button onClick={addSubtask} disabled={!newSubtask.trim()}>
+                                                    <Plus className='h-4 w-4' />
+                                                </Button>
+                                            </div>
+                                        </TabsContent>
+
+                                        <TabsContent value='time' className='space-y-4'>
+                                            <div className='grid grid-cols-2 gap-4 rounded-lg bg-gray-50 p-4'>
+                                                <div>
+                                                    <Label className='text-sm font-medium'>Estimated Hours</Label>
+                                                    <p className='text-lg font-semibold'>
+                                                        {selectedTaskForDetail.estimatedHours || 0}h
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <Label className='text-sm font-medium'>Actual Hours</Label>
+                                                    <p className='text-lg font-semibold'>
+                                                        {selectedTaskForDetail.actualHours || 0}h
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className='max-h-48 space-y-2 overflow-y-auto'>
+                                                {selectedTaskForDetail.timeEntries.map((entry) => {
+                                                    const user = allUsers.find((u) => u.id === entry.userId);
+
+                                                    return (
+                                                        <div
+                                                            key={entry.id}
+                                                            className='flex items-center justify-between rounded border p-2'>
+                                                            <div className='flex items-center space-x-2'>
+                                                                <Avatar className='h-6 w-6'>
+                                                                    <AvatarImage
+                                                                        src={user?.avatar || '/placeholder.svg'}
+                                                                    />
+                                                                    <AvatarFallback className='text-xs'>
+                                                                        {user?.initials}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <div>
+                                                                    <p className='text-sm font-medium'>
+                                                                        {entry.description}
+                                                                    </p>
+                                                                    <p className='text-xs text-gray-500'>
+                                                                        {entry.date}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <Badge variant='outline'>{entry.hours}h</Badge>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                            <div className='grid grid-cols-3 gap-2'>
+                                                <Input
+                                                    placeholder='Description'
+                                                    value={newTimeEntry.description}
+                                                    onChange={(e) =>
+                                                        setNewTimeEntry({
+                                                            ...newTimeEntry,
+                                                            description: e.target.value
+                                                        })
+                                                    }
+                                                />
+                                                <Input
+                                                    type='number'
+                                                    placeholder='Hours'
+                                                    value={newTimeEntry.hours || ''}
+                                                    onChange={(e) =>
+                                                        setNewTimeEntry({
+                                                            ...newTimeEntry,
+                                                            hours: Number(e.target.value)
+                                                        })
+                                                    }
+                                                />
+                                                <Button
+                                                    onClick={addTimeEntry}
+                                                    disabled={!newTimeEntry.description || !newTimeEntry.hours}>
+                                                    <Clock className='h-4 w-4' />
+                                                </Button>
+                                            </div>
+                                        </TabsContent>
+
+                                        <TabsContent value='attachments' className='space-y-4'>
+                                            <div className='max-h-64 space-y-2 overflow-y-auto'>
+                                                {selectedTaskForDetail.attachments.map((attachment) => {
+                                                    const uploader = allUsers.find(
+                                                        (u) => u.id === attachment.uploadedBy
+                                                    );
+
+                                                    return (
+                                                        <div
+                                                            key={attachment.id}
+                                                            className='flex items-center space-x-3 rounded border p-2'>
+                                                            <Paperclip className='h-4 w-4 text-gray-500' />
+                                                            <div className='flex-1'>
+                                                                <p className='text-sm font-medium'>{attachment.name}</p>
+                                                                <p className='text-xs text-gray-500'>
+                                                                    {formatFileSize(attachment.size)} • {uploader?.name}{' '}
+                                                                    • {formatDate(attachment.uploadedAt)}
+                                                                </p>
+                                                            </div>
+                                                            <Button variant='ghost' size='sm'>
+                                                                <Eye className='h-4 w-4' />
+                                                            </Button>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                            <Button variant='outline' className='w-full'>
+                                                <Paperclip className='mr-2 h-4 w-4' />
+                                                Upload File
+                                            </Button>
+                                        </TabsContent>
+
+                                        <TabsContent value='activity' className='space-y-4'>
+                                            <ScrollArea className='h-64'>
+                                                <div className='space-y-3'>
+                                                    {selectedTaskForDetail.activity.map((activity) => {
+                                                        const user = allUsers.find((u) => u.id === activity.userId);
+
+                                                        return (
+                                                            <div key={activity.id} className='flex space-x-3'>
+                                                                <Avatar className='h-6 w-6'>
+                                                                    <AvatarImage
+                                                                        src={user?.avatar || '/placeholder.svg'}
+                                                                    />
+                                                                    <AvatarFallback className='text-xs'>
+                                                                        {user?.initials}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <div className='flex-1'>
+                                                                    <p className='text-sm'>
+                                                                        <span className='font-medium'>
+                                                                            {user?.name}
+                                                                        </span>{' '}
+                                                                        {activity.description}
+                                                                    </p>
+                                                                    <p className='text-xs text-gray-500'>
+                                                                        {formatDate(activity.createdAt)}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </ScrollArea>
+                                        </TabsContent>
+                                    </Tabs>
+                                </div>
+
+                                {/* Sidebar */}
+                                <div className='space-y-6'>
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className='text-sm'>Details</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className='space-y-4'>
+                                            <div>
+                                                <Label className='text-xs text-gray-500'>Assignee</Label>
+                                                <div className='mt-1 flex items-center space-x-2'>
+                                                    {selectedTaskForDetail.assigneeId ? (
+                                                        <>
+                                                            <Avatar className='h-6 w-6'>
+                                                                <AvatarImage
+                                                                    src={
+                                                                        allUsers.find(
+                                                                            (u) =>
+                                                                                u.id ===
+                                                                                selectedTaskForDetail.assigneeId
+                                                                        )?.avatar || '/placeholder.svg'
+                                                                    }
+                                                                />
+                                                                <AvatarFallback className='text-xs'>
+                                                                    {
+                                                                        allUsers.find(
+                                                                            (u) =>
+                                                                                u.id ===
+                                                                                selectedTaskForDetail.assigneeId
+                                                                        )?.initials
+                                                                    }
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <span className='text-sm'>
+                                                                {
+                                                                    allUsers.find(
+                                                                        (u) => u.id === selectedTaskForDetail.assigneeId
+                                                                    )?.name
+                                                                }
+                                                            </span>
+                                                        </>
+                                                    ) : (
+                                                        <span className='text-sm text-gray-500'>Unassigned</span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <Label className='text-xs text-gray-500'>Status</Label>
+                                                <p className='mt-1 text-sm capitalize'>
+                                                    {selectedTaskForDetail.status.replace('_', ' ')}
+                                                </p>
+                                            </div>
+
+                                            <div>
+                                                <Label className='text-xs text-gray-500'>Priority</Label>
+                                                <Badge
+                                                    className={`mt-1 ${
+                                                        selectedTaskForDetail.priority === 'high'
+                                                            ? 'bg-red-500'
+                                                            : selectedTaskForDetail.priority === 'medium'
+                                                              ? 'bg-yellow-500'
+                                                              : 'bg-green-500'
+                                                    }`}>
+                                                    {selectedTaskForDetail.priority}
+                                                </Badge>
+                                            </div>
+
+                                            {selectedTaskForDetail.dueDate && (
+                                                <div>
+                                                    <Label className='text-xs text-gray-500'>Due Date</Label>
+                                                    <div className='mt-1 flex items-center space-x-2'>
+                                                        <Calendar className='h-4 w-4 text-gray-500' />
+                                                        <span className='text-sm'>
+                                                            {new Date(
+                                                                selectedTaskForDetail.dueDate
+                                                            ).toLocaleDateString()}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div>
+                                                <Label className='text-xs text-gray-500'>Created</Label>
+                                                <p className='mt-1 text-sm'>
+                                                    {formatDate(selectedTaskForDetail.createdAt)}
+                                                </p>
+                                            </div>
+
+                                            {selectedTaskForDetail.updatedAt && (
+                                                <div>
+                                                    <Label className='text-xs text-gray-500'>Updated</Label>
+                                                    <p className='mt-1 text-sm'>
+                                                        {formatDate(selectedTaskForDetail.updatedAt)}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+
+                                    {selectedTaskForDetail.relatedTasks.length > 0 && (
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle className='text-sm'>Related Tasks</CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className='space-y-2'>
+                                                    {getRelatedTasks(selectedTaskForDetail.relatedTasks).map((task) => (
+                                                        <div
+                                                            key={task.id}
+                                                            className='flex items-center space-x-2 rounded border p-2 text-sm'>
+                                                            <ArrowRight className='h-3 w-3 text-gray-500' />
+                                                            <span className='flex-1'>{task.title}</span>
+                                                            <Badge variant='outline' className='text-xs'>
+                                                                {task.taskId}
+                                                            </Badge>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    )}
+
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className='text-sm'>Progress</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className='space-y-3'>
+                                                <div>
+                                                    <div className='mb-1 flex justify-between text-sm'>
+                                                        <span>Subtasks</span>
+                                                        <span>
+                                                            {
+                                                                selectedTaskForDetail.subtasks.filter(
+                                                                    (s) => s.completed
+                                                                ).length
+                                                            }
+                                                            /{selectedTaskForDetail.subtasks.length}
+                                                        </span>
+                                                    </div>
+                                                    <div className='h-2 w-full rounded-full bg-gray-200'>
+                                                        <div
+                                                            className='h-2 rounded-full bg-blue-600'
+                                                            style={{
+                                                                width: `${
+                                                                    selectedTaskForDetail.subtasks.length > 0
+                                                                        ? (selectedTaskForDetail.subtasks.filter(
+                                                                              (s) => s.completed
+                                                                          ).length /
+                                                                              selectedTaskForDetail.subtasks.length) *
+                                                                          100
+                                                                        : 0
+                                                                }%`
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {selectedTaskForDetail.estimatedHours && (
+                                                    <div>
+                                                        <div className='mb-1 flex justify-between text-sm'>
+                                                            <span>Time Progress</span>
+                                                            <span>
+                                                                {selectedTaskForDetail.actualHours || 0}h /{' '}
+                                                                {selectedTaskForDetail.estimatedHours}h
+                                                            </span>
+                                                        </div>
+                                                        <div className='h-2 w-full rounded-full bg-gray-200'>
+                                                            <div
+                                                                className='h-2 rounded-full bg-green-600'
+                                                                style={{
+                                                                    width: `${Math.min(
+                                                                        ((selectedTaskForDetail.actualHours || 0) /
+                                                                            selectedTaskForDetail.estimatedHours) *
+                                                                            100,
+                                                                        100
+                                                                    )}%`
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className='text-sm'>Assignment History</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className='max-h-32 space-y-2 overflow-y-auto'>
+                                                {selectedTaskForDetail.assignmentHistory.map((entry, index) => {
+                                                    const assignedBy = allUsers.find((u) => u.id === entry.assignedBy);
+                                                    const assignee = entry.assigneeId
+                                                        ? allUsers.find((u) => u.id === entry.assigneeId)
+                                                        : null;
+
+                                                    return (
+                                                        <div key={index} className='text-xs text-gray-600'>
+                                                            <div className='flex items-center space-x-1'>
+                                                                <History className='h-3 w-3' />
+                                                                <span>
+                                                                    {entry.action}{' '}
+                                                                    {assignee ? `to ${assignee.name}` : ''} by{' '}
+                                                                    {assignedBy?.name}
+                                                                </span>
+                                                            </div>
+                                                            <p className='ml-4 text-gray-500'>
+                                                                {formatDate(entry.assignedAt)}
+                                                            </p>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </div>
+                        )}
+                    </DialogContent>
+                </Dialog>
+                ;{/* Kanban Board */}
                 <DragDropContext onDragEnd={onDragEnd}>
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>
                         {filteredColumns.map((column) => (
@@ -1083,7 +1908,7 @@ export default function ResearchManagementTool() {
                                                 <Plus className='h-4 w-4' />
                                             </Button>
                                         </DialogTrigger>
-                                        <DialogContent >
+                                        <DialogContent>
                                             <DialogHeader>
                                                 <DialogTitle>Create New Task</DialogTitle>
                                             </DialogHeader>
@@ -1149,16 +1974,33 @@ export default function ResearchManagementTool() {
                                                         </Select>
                                                     </div>
                                                 </div>
-                                                <div>
-                                                    <Label htmlFor='task-due-date'>Due Date</Label>
-                                                    <Input
-                                                        id='task-due-date'
-                                                        type='date'
-                                                        value={newTask.dueDate}
-                                                        onChange={(e) =>
-                                                            setNewTask({ ...newTask, dueDate: e.target.value })
-                                                        }
-                                                    />
+                                                <div className='grid grid-cols-2 gap-4'>
+                                                    <div>
+                                                        <Label htmlFor='task-due-date'>Due Date</Label>
+                                                        <Input
+                                                            id='task-due-date'
+                                                            type='date'
+                                                            value={newTask.dueDate}
+                                                            onChange={(e) =>
+                                                                setNewTask({ ...newTask, dueDate: e.target.value })
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label htmlFor='task-estimated-hours'>Estimated Hours</Label>
+                                                        <Input
+                                                            id='task-estimated-hours'
+                                                            type='number'
+                                                            value={newTask.estimatedHours || ''}
+                                                            onChange={(e) =>
+                                                                setNewTask({
+                                                                    ...newTask,
+                                                                    estimatedHours: Number(e.target.value)
+                                                                })
+                                                            }
+                                                            placeholder='0'
+                                                        />
+                                                    </div>
                                                 </div>
                                                 <Button onClick={createTask} className='w-full'>
                                                     Create Task
@@ -1190,10 +2032,15 @@ export default function ResearchManagementTool() {
                                                                 {...provided.dragHandleProps}
                                                                 className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
                                                                     snapshot.isDragging ? 'rotate-2 shadow-lg' : ''
-                                                                }}`}>
+                                                                } `}>
                                                                 <CardContent className='p-4'>
                                                                     <div className='mb-2 flex items-start justify-between'>
-                                                                        <h4 className='text-sm leading-tight font-medium'>
+                                                                        <h4
+                                                                            className='cursor-pointer text-sm leading-tight font-medium hover:text-blue-600'
+                                                                            onClick={() => {
+                                                                                setSelectedTaskForDetail(task);
+                                                                                setIsTaskDetailOpen(true);
+                                                                            }}>
                                                                             {task.title}
                                                                         </h4>
                                                                         <DropdownMenu>
@@ -1206,6 +2053,14 @@ export default function ResearchManagementTool() {
                                                                                 </Button>
                                                                             </DropdownMenuTrigger>
                                                                             <DropdownMenuContent>
+                                                                                <DropdownMenuItem
+                                                                                    onClick={() => {
+                                                                                        setSelectedTaskForDetail(task);
+                                                                                        setIsTaskDetailOpen(true);
+                                                                                    }}>
+                                                                                    <Eye className='mr-2 h-4 w-4' />
+                                                                                    View Details
+                                                                                </DropdownMenuItem>
                                                                                 <DropdownMenuItem
                                                                                     onClick={() => {
                                                                                         setSelectedTaskForAssignment(
@@ -1300,6 +2155,7 @@ export default function ResearchManagementTool() {
                         ))}
                     </div>
                 </DragDropContext>
+                ;
             </div>
         </div>
     );
