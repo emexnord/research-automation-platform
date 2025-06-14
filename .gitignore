@@ -1,0 +1,13 @@
+.env
+./client/.env
+./server/.env
+
+.DS_Store
+.vscode
+
+node_modules
+client/node_modules
+server/node_modules
+
+# PostgreSQL data
+pgdata/
