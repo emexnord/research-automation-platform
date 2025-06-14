@@ -33,7 +33,7 @@ const mockSurveys: Survey[] = [
         createdAt: '2024-03-15',
         isPublished: true,
         responseCount: 45,
-        shareUrl: `${window.location.origin}/forms/1`,
+        shareUrl: `/forms/1`,
         questions: [
             {
                 id: 'q1',
@@ -56,7 +56,7 @@ const mockSurveys: Survey[] = [
         createdAt: '2024-03-14',
         isPublished: true,
         responseCount: 28,
-        shareUrl: `${window.location.origin}/forms/2`,
+        shareUrl: `/forms/2`,
         questions: [
             {
                 id: 'q1',
@@ -80,7 +80,7 @@ const mockSurveys: Survey[] = [
         createdAt: '2024-03-13',
         isPublished: false,
         responseCount: 0,
-        shareUrl: `${window.location.origin}/forms/3`,
+        shareUrl: `/forms/3`,
         questions: [
             {
                 id: 'q1',
@@ -91,7 +91,7 @@ const mockSurveys: Survey[] = [
             {
                 id: 'q2',
                 type: 'rating',
-                text: 'How would you rate the project\'s success?',
+                text: "How would you rate the project's success?",
                 required: true
             }
         ]
