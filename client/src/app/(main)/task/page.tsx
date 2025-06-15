@@ -473,6 +473,10 @@ export default function ResearchManagementTool() {
     const [newComment, setNewComment] = useState('');
     const [newTimeEntry, setNewTimeEntry] = useState({ description: '', hours: 0, date: '' });
     const [newSubtask, setNewSubtask] = useState('');
+    const [isEditTaskOpen, setIsEditTaskOpen] = useState(false);
+    const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+    const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
 
     // New task form state
     const [newTask, setNewTask] = useState({
@@ -951,6 +955,24 @@ export default function ResearchManagementTool() {
 
         setProjects(newProjects);
     };
+    const deleteTask = (taskId: string) => {
+        const newProjects = projects.map((project) => {
+            if (project.id === currentProjectId) {
+                const newColumns = project.columns.map((column) => ({
+                    ...column,
+                    tasks: column.tasks.filter((task) => task.id !== taskId)
+                }));
+
+                return { ...project, columns: newColumns };
+            }
+
+            return project;
+        });
+        setProjects(newProjects);
+        setIsDeleteConfirmOpen(false);
+        setTaskToDelete(null);
+        toast({ title: 'Task Deleted', description: 'The task was deleted successfully.' });
+    };
 
     const filteredColumns = currentProject
         ? currentProject.columns.map((column) => ({
@@ -1197,6 +1219,83 @@ export default function ResearchManagementTool() {
                                             </SelectContent>
                                         </Select>
                                     </div>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                        <Dialog open={isEditTaskOpen} onOpenChange={setIsEditTaskOpen}>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Edit Task</DialogTitle>
+                                </DialogHeader>
+                                {taskToEdit && (
+                                    <form
+                                        onSubmit={(e) => {
+                                            e.preventDefault();
+                                            updateTask(taskToEdit.id, {
+                                                title: e.target.title.value,
+                                                description: e.target.description.value
+                                                // ...add other fields as needed
+                                            });
+                                            setIsEditTaskOpen(false);
+                                            setTaskToEdit(null);
+                                        }}>
+                                        <div>
+                                            <Label htmlFor='title'>Title</Label>
+                                            <Input name='title' id='title' defaultValue={taskToEdit.title} required />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor='description'>Description</Label>
+                                            <Textarea
+                                                name='description'
+                                                id='description'
+                                                defaultValue={taskToEdit.description}
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor='dueDate'>Due Date</Label>
+                                            <Input
+                                                name='dueDate'
+                                                id='dueDate'
+                                                type='date'
+                                                defaultValue={taskToEdit.dueDate ? taskToEdit.dueDate : ''}
+                                            />
+                                        </div>
+                                        <div className='flex justify-end gap-2'>
+                                            <Button
+                                                type='button'
+                                                variant='outline'
+                                                onClick={() => setIsEditTaskOpen(false)}>
+                                                Cancel
+                                            </Button>
+                                            <Button type='submit'>Save</Button>
+                                        </div>
+                                    </form>
+                                )}
+                            </DialogContent>
+                        </Dialog>
+                        <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+                            <DialogTrigger asChild>
+                                <Button variant='outline' size='sm'>
+                                    <Users className='mr-2 h-4 w-4' />
+                                    Delete Task
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Delete Task</DialogTitle>
+                                </DialogHeader>
+                                <div>Are you sure you want to delete this task?</div>
+                                <div className='mt-4 flex gap-2'>
+                                    <Button
+                                        variant='destructive'
+                                        onClick={() => {
+                                            if (taskToDelete) deleteTask(taskToDelete.id);
+                                        }}>
+                                        Delete
+                                    </Button>
+                                    <Button variant='outline' onClick={() => setIsDeleteConfirmOpen(false)}>
+                                        Cancel
+                                    </Button>
                                 </div>
                             </DialogContent>
                         </Dialog>
@@ -2087,11 +2186,24 @@ export default function ResearchManagementTool() {
                                                                                     </DropdownMenuItem>
                                                                                 )}
                                                                                 <DropdownMenuSeparator />
-                                                                                <DropdownMenuItem>
+                                                                                <DropdownMenuItem
+                                                                                    onClick={() => {
+                                                                                        setTaskToEdit(task);
+                                                                                        setIsEditTaskOpen(true);
+                                                                                    }}>
                                                                                     <Edit className='mr-2 h-4 w-4' />
                                                                                     Edit
                                                                                 </DropdownMenuItem>
-                                                                                <DropdownMenuItem className='text-red-600'>
+                                                                                <DropdownMenuItem
+                                                                                    onClick={() => {
+                                                                                        setTaskToDelete(task);
+                                                                                        console.log(
+                                                                                            'Task to delete:',
+                                                                                            task
+                                                                                        );
+                                                                                        setIsDeleteConfirmOpen(true);
+                                                                                    }}
+                                                                                    className='text-red-600'>
                                                                                     <Trash2 className='mr-2 h-4 w-4' />
                                                                                     Delete
                                                                                 </DropdownMenuItem>
