@@ -15,11 +15,13 @@ import { LoginDto } from './dto/login-input.dto';
 import { User } from './entities/user.entity';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailInputDto } from './dto/verify-email-input.dto';
-import { SendVerificationEmailDto } from './dto/send-verification-email.dto';
 import { GetUser } from './decorators/user.decorator';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { UserInfoDto } from './dto/user-info.dto';
+import { JwtAuthGuard } from '../jwt/jwt-auth.guard';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiBody, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('User')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -49,30 +51,34 @@ export class UserController {
     return await this.userService.verifyEmail(verifyEmailInput);
   }
 
-  @Get('verify-email/send')
-  async sendVerificationEmail(
-    @Query() dto: SendVerificationEmailDto,
-  ): Promise<User | null> {
-    return await this.userService.sendVerificationEmail(dto.email);
-  }
-
-  @Get('forgot-password')
-  async requestPasswordRecovery(@Query() dto: ForgotPasswordDto) {
-    return this.userService.requestPasswordRecovery(dto.email);
+  @Post('forgot-password')
+  async requestPasswordRecovery(@Body() dto: ForgotPasswordDto) {
+    return await this.userService.requestPasswordRecovery(dto.email);
   }
 
   @Post('reset-password')
   async resetPassword(
     @Body() resetPasswordData: ResetPasswordDto,
   ): Promise<User | null> {
-    return this.userService.resetPassword(resetPasswordData);
+    return await this.userService.resetPassword(resetPasswordData);
+  }
+  
+  @Get('profile')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiResponse({ status: 200, description: 'User profile returned.' })
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@GetUser() user: User) {
+    return this.userService.getProfile(user.email);
   }
 
-  @Put()
-  async update(
-    @Body() updateUserDto: UpdateUserDto,
-    @GetUser() user: User,
-  ): Promise<User> {
-    return await this.userService.update(user.id, updateUserDto);
+  @Put('profile')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update current user profile and info' })
+  @ApiBody({ type: UserInfoDto })
+  @ApiResponse({ status: 200, description: 'User profile updated.' })
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(@GetUser() user: User, @Body() updateUserDto: Partial<User> & Partial<UserInfoDto>) {
+    return this.userService.updateProfile(user.email, updateUserDto);
   }
 }
