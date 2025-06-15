@@ -102,7 +102,7 @@ export function Navbar() {
                 {/* Desktop Get Started Button */}
                 <div className='hidden md:flex'>
                     <Button asChild>
-                        <Link href='/task'>Get Started</Link>
+                        <Link href='/signup'>Get Started</Link>
                     </Button>
                 </div>
 
