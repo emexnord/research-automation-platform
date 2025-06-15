@@ -2,19 +2,15 @@
 
 import { useState } from 'react';
 
+
+
 import { toast } from '@/components/ui/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/registry/new-york-v4/ui/avatar';
 import { Badge } from '@/registry/new-york-v4/ui/badge';
 import { Button } from '@/registry/new-york-v4/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/registry/new-york-v4/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/registry/new-york-v4/ui/dialog';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from '@/registry/new-york-v4/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/registry/new-york-v4/ui/dropdown-menu';
 import { Input } from '@/registry/new-york-v4/ui/input';
 import { Label } from '@/registry/new-york-v4/ui/label';
 import { ScrollArea } from '@/registry/new-york-v4/ui/scroll-area';
@@ -23,24 +19,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/registry/new-york-v4
 import { Textarea } from '@/registry/new-york-v4/ui/textarea';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 
-import {
-    ArrowRight,
-    Calendar,
-    Clock,
-    Edit,
-    Eye,
-    History,
-    MessageSquare,
-    MoreHorizontal,
-    Paperclip,
-    Plus,
-    Search,
-    Trash2,
-    UserCheck,
-    UserPlus,
-    UserX,
-    Users
-} from 'lucide-react';
+
+
+import { ArrowRight, Calendar, Clock, Edit, Eye, History, MessageSquare, MoreHorizontal, Paperclip, Plus, Search, Trash2, UserCheck, UserPlus, UserX, Users } from 'lucide-react';
+
+
+
+
 
 interface User {
     id: string;
@@ -1231,9 +1216,11 @@ export default function ResearchManagementTool() {
                                     <form
                                         onSubmit={(e) => {
                                             e.preventDefault();
+                                            const form = e.target as HTMLFormElement;
                                             updateTask(taskToEdit.id, {
-                                                title: e.target.title.value,
-                                                description: e.target.description.value
+                                                //@ts-ignore
+                                                title: form.title.value,
+                                                description: form.description.value
                                                 // ...add other fields as needed
                                             });
                                             setIsEditTaskOpen(false);
