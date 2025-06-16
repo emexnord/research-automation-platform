@@ -19,9 +19,9 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "typeorm-ts-node-commonjs -d ./src/modules/db/data-source.ts",
-    "migration:generate": "npm run typeorm -- migration:generate src/modules/db/migrations/InitialMigration -p",
-    "migration:run": "npm run typeorm -- migration:run",
-    "migration:revert": "npm run typeorm -- migration:revert"
+    "migration:generate": "typeorm-ts-node-commonjs -d ./src/modules/db/data-source.ts migration:generate src/modules/db/migrations/InitialMigration -p",
+    "migration:run": "typeorm-ts-node-commonjs -d ./src/modules/db/data-source.ts migration:run",
+    "migration:revert": "typeorm-ts-node-commonjs -d ./src/modules/db/data-source.ts migration:revert"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

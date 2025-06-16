@@ -48,13 +48,6 @@ export class UserService {
   async login(creadentials: LoginDto): Promise<AuthTokenOutput> {
     const { email, password } = creadentials;
     const user = await this.userRepository.findOneWithSensitiveFields({ email: email.toLowerCase() });
-  async login(credentials: LoginDto): Promise<AuthTokenOutput> {
-    const { email, password } = credentials;
-    const user = await this.userRepository.findOneWithSensitiveFields(email);
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
 
     if (!user.isVerified) {
       throw new ForbiddenException('User not verified');
