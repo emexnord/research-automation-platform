@@ -58,22 +58,6 @@ export function UserProfile() {
         });
     };
 
-    const handleSignInClick = () => {
-        setIsOpen(false);
-        openDialog({
-            title: 'Sign in to your account',
-            content: <SignIn />
-        });
-    };
-
-    const handleSignUpClick = () => {
-        setIsOpen(false);
-        openDialog({
-            title: 'Create an account',
-            content: <SignUp />
-        });
-    };
-
     return (
         <SidebarMenu>
             <SidebarMenuItem>
@@ -159,12 +143,12 @@ export function UserProfile() {
                             align='end'
                             sideOffset={4}>
                             <DropdownMenuItem
-                                onClick={handleSignUpClick}
+                                onClick={() => (window.location.href = '/signup')}
                                 className='bg-background focus:bg-accent focus:text-accent-foreground mt-2 mb-3 h-10 cursor-pointer justify-center rounded-md border px-6 py-2 shadow-xs'>
                                 Sign Up
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                                onClick={handleSignInClick}
+                                onClick={() => (window.location.href = '/signin')}
                                 className='bg-primary focus:bg-primary/90 text-primary-foreground focus:text-primary-foreground my-2 h-10 cursor-pointer justify-center rounded-md px-6 py-2 shadow-xs'>
                                 Sign In
                             </DropdownMenuItem>

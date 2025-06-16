@@ -11,6 +11,7 @@ import { FoldersModule } from './modules/folders/folders.module';
 import { SharedLinksModule } from './modules/shared-links/shared-links.module';
 import { FormModule } from './modules/form/form.module';
 import { ResponseModule } from './modules/response/response.module';
+import { TeamModule } from './modules/team/team.module';
 
 const config = configuration();
 
@@ -20,6 +21,7 @@ const config = configuration();
       load: [configuration],
       isGlobal: true,
     }),
+    TeamModule,
     UserModule,
     DatabaseModule,
     JwtModule,
