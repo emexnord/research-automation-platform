@@ -4,7 +4,7 @@ import {
   ExecutionContext,
   ForbiddenException,
 } from '@nestjs/common';
-import { ROLE } from '../entities/user.interface';
+import { ROLE } from 'src/modules/user/entities/user.interface';
 
 @Injectable()
 export class AdminGuard implements CanActivate {

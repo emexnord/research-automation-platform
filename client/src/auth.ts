@@ -14,11 +14,11 @@ const authOptions = {
         CredentialsProvider({
             name: 'Credentials',
             credentials: {
-                handle: { label: 'Handle', type: 'text' },
+                email: { label: 'Email', type: 'email' },
                 password: { label: 'Password', type: 'password' }
             },
             authorize: async (credentials) => {
-                if (!credentials?.handle || !credentials.password) {
+                if (!credentials?.email || !credentials.password) {
                     return null;
                 }
                 const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/login`, {
@@ -27,11 +27,12 @@ const authOptions = {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        handle: credentials.handle,
+                        email: credentials.email,
                         password: credentials.password
                     })
                 });
                 const data = await response.json();
+                console.log('data', data);
 
                 if (!response.ok) {
                     const message = data?.message || 'Login failed. Please try again.';
