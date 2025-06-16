@@ -23,6 +23,7 @@ import SignIn from './modal/SignIn';
 import SignUp from './modal/SignUp';
 import { BadgeCheck, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { useProjectStore } from '@/store/projectStore';
 
 export function UserProfile() {
     const { data: session } = useSession();
@@ -30,6 +31,7 @@ export function UserProfile() {
     const { isMobile } = useSidebar();
     const { openDialog } = useDialog();
     const [isOpen, setIsOpen] = useState(false);
+    const { clearProjects } = useProjectStore();
 
     // const handleAccountSettingsClick = () => {
     //   setIsOpen(false);
@@ -52,6 +54,7 @@ export function UserProfile() {
     const handleLogoutClick = () => {
         if (!session?.user.email) return;
         setIsOpen(false);
+        clearProjects(); // Clear projects on logout
 
         openDialog({
             content: <LogoutModal email={session?.user.email} />
