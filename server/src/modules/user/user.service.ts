@@ -21,6 +21,11 @@ import { TokenType } from '../shared/enums/token-type.enum';
 import { VerifyEmailInputDto } from './dto/verify-email-input.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { generateSalt, hashPassword } from 'src/utils/password';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { EmailService } from '../shared/email.service';
+import { UsersInfo } from './entities/users_info.entity';
+import { UserInfoDto } from './dto/user-info.dto';
 
 const config = configuration();
 
@@ -45,9 +50,6 @@ export class UserService {
     return this.userRepository.findByEmail(normalizedEmail);
   }
 
-  async login(creadentials: LoginDto): Promise<AuthTokenOutput> {
-    const { email, password } = creadentials;
-    const user = await this.userRepository.findOneWithSensitiveFields({ email: email.toLowerCase() });
   async login(credentials: LoginDto): Promise<AuthTokenOutput> {
     const { email, password } = credentials;
     const user = await this.userRepository.findOneWithSensitiveFields(email);
@@ -150,8 +152,11 @@ export class UserService {
     }
   }
 
-  async register(registerInputDto: RegisterInputDto & Partial<UserInfoDto>): Promise<User> {
-    const { email, password, occupation, industry, years_of_experience } = registerInputDto;
+  async register(
+    registerInputDto: RegisterInputDto & Partial<UserInfoDto>,
+  ): Promise<User> {
+    const { email, password, occupation, industry, years_of_experience } =
+      registerInputDto;
     const normalizedEmail = email.toLowerCase();
     const isUserFound = await this.userRepository.findByEmail(normalizedEmail);
 
@@ -181,7 +186,10 @@ export class UserService {
     const verification_token =
       await this.tokenService.createEmailVerificationToken(user.id.toString());
 
-    await this.emailService.sendVerificationEmail(user.email, verification_token.token);
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      verification_token.token,
+    );
 
     return user;
   }
@@ -197,7 +205,10 @@ export class UserService {
     }
     const verification_token =
       await this.tokenService.createEmailVerificationToken(user.id.toString());
-    await this.emailService.sendVerificationEmail(user.email, verification_token.token);
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      verification_token.token,
+    );
 
     return user;
   }
@@ -306,55 +317,24 @@ export class UserService {
     }
   }
 
-  async getUsers(query: GetUsersDto): Promise<PaginatedUsersDto> {
-    const { search, role, isVerified, page = 1, limit = 10 } = query;
-    const skip = (page - 1) * limit;
-
-    // Build filter object
-    const filter: any = {};
-
-    if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { username: { $regex: search, $options: 'i' } },
-      ];
-    }
-
-    if (role) {
-      filter.role = role;
-    }
-
-    if (typeof isVerified === 'boolean') {
-      filter.isVerified = isVerified;
-    }
-
-    const [users, total] = await Promise.all([
-      this.userRepository.findWithPagination(filter, skip, limit),
-      this.userRepository.countDocuments(filter),
-    ]);
-
-    return {
-      data: users,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
-  }
-
   async getProfile(email: string) {
     const user = await this.userRepository.findByEmail(email);
     if (!user) throw new NotFoundException('User not found');
-    const userInfo = await this.usersInfoRepository.findOne({ where: { email } });
+    const userInfo = await this.usersInfoRepository.findOne({
+      where: { email },
+    });
     return { ...user, userInfo };
   }
 
-  async updateProfile(email: string, updateUserDto: Partial<User> & Partial<UserInfoDto>) {
+  async updateProfile(
+    email: string,
+    updateUserDto: Partial<User> & Partial<UserInfoDto>,
+  ) {
     const user = await this.userRepository.findByEmail(email);
     if (!user) throw new NotFoundException('User not found');
     // Update user fields
-    const { occupation, industry, years_of_experience, ...userFields } = updateUserDto;
+    const { occupation, industry, years_of_experience, ...userFields } =
+      updateUserDto;
     await this.userRepository.updateById(user.id, userFields);
     // Update or create users_info
     let userInfo = await this.usersInfoRepository.findOne({ where: { email } });
