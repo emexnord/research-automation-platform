@@ -12,6 +12,10 @@ async function bootstrap() {
       transform: true, // Automatically transform payloads to DTO instances
     }),
   );
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    credentials: true, // 👈 allow cookies (if using withCredentials)
+  });
 
   // Swagger setup
   const config = new DocumentBuilder()
