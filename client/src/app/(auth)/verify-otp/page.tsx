@@ -2,14 +2,24 @@
 
 import { Suspense, useState } from 'react';
 
+
+
 import { useRouter, useSearchParams } from 'next/navigation';
+
+
 
 import api from '@/lib/api';
 import { Button } from '@/registry/new-york-v4/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/registry/new-york-v4/ui/card';
 import { Input } from '@/registry/new-york-v4/ui/input';
 
+
+
 import { toast } from 'sonner';
+
+
+
+
 
 function VerifyOTPContent() {
     const router = useRouter();
@@ -64,7 +74,7 @@ function VerifyOTPContent() {
             }
 
             toast.success('Email verified successfully!');
-            router.push('/additional-info');
+            router.push('/task');
         } catch (error) {
             toast.error('Invalid OTP');
         } finally {
