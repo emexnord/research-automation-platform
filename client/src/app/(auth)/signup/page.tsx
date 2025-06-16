@@ -2,7 +2,11 @@
 
 import { useState } from 'react';
 
+
+
 import { useRouter } from 'next/navigation';
+
+
 
 import api from '@/lib/api';
 import { Button } from '@/registry/new-york-v4/ui/button';
@@ -12,10 +16,16 @@ import { Input } from '@/registry/new-york-v4/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/registry/new-york-v4/ui/select';
 import { zodResolver } from '@hookform/resolvers/zod';
 
+
+
 import { se } from 'date-fns/locale';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
+
+
+
+
 
 const signupSchema = z
     .object({
@@ -101,7 +111,7 @@ export default function SignUpPage() {
             router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);
         } catch (error) {
             console.error('Registration error:', error);
-            toast.error('Failed to sign up', error.response?.data?.message || 'Please try again later');
+            toast.error('Failed to sign up');
         }
     };
 
