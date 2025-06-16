@@ -99,6 +99,7 @@ export default function SignInPage() {
             }
         } else {
             toast.success('Welcome back!');
+            router.push('/project-signin');
         }
         setLoading(false);
     };
