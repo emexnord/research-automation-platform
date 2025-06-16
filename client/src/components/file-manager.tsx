@@ -156,8 +156,10 @@ export function FileManager() {
                                         </Button>
                                     )}
                                     <ShareDialog
-                                        fileName={file.name}
-                                        onShare={(email, permission) => handleShare(file.id, email, permission)}
+                                        itemId={file.id}
+                                        itemName={file.name}
+                                        itemType={file.type}
+                                        onShareComplete={loadFiles}
                                     />
                                     <Button
                                         variant="ghost"

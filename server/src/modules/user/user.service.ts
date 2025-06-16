@@ -7,6 +7,8 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { OAuth2Client } from 'google-auth-library';
 import configuration from '../../config';
 import { LoginDto } from './dto/login-input.dto';
@@ -21,6 +23,11 @@ import { TokenType } from '../shared/enums/token-type.enum';
 import { VerifyEmailInputDto } from './dto/verify-email-input.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { generateSalt, hashPassword } from 'src/utils/password';
+import { EmailService } from '../shared/email.service';
+import { UsersInfo } from './entities/users_info.entity';
+import { UserInfoDto } from './dto/user-info.dto';
+import { GetUsersDto } from './dto/get-users.dto';
+import { PaginatedUsersDto } from './dto/paginated-users.dto';
 
 const config = configuration();
 
@@ -45,9 +52,6 @@ export class UserService {
     return this.userRepository.findByEmail(normalizedEmail);
   }
 
-  async login(creadentials: LoginDto): Promise<AuthTokenOutput> {
-    const { email, password } = creadentials;
-    const user = await this.userRepository.findOneWithSensitiveFields({ email: email.toLowerCase() });
   async login(credentials: LoginDto): Promise<AuthTokenOutput> {
     const { email, password } = credentials;
     const user = await this.userRepository.findOneWithSensitiveFields(email);

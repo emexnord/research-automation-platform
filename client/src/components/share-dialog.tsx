@@ -17,24 +17,76 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/registry/new-york-v4/ui/select';
+import { Switch } from '@/registry/new-york-v4/ui/switch';
 import { Share2 } from 'lucide-react';
 import { useState } from 'react';
+import { CreateSharedLinkDto, PermissionType } from '@/types/shared-links';
+import { sharedLinksService } from '@/lib/shared-links-service';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ShareDialogProps {
-    fileName: string;
-    onShare: (email: string, permission: string) => void;
+    itemId: string;
+    itemName: string;
+    itemType: 'file' | 'folder';
+    onShareComplete: () => void;
 }
 
-export function ShareDialog({ fileName, onShare }: ShareDialogProps) {
+export function ShareDialog({ itemId, itemName, itemType, onShareComplete }: ShareDialogProps) {
     const [email, setEmail] = useState('');
-    const [permission, setPermission] = useState('viewer');
+    const [permission, setPermission] = useState<PermissionType>('viewer');
     const [isOpen, setIsOpen] = useState(false);
+    const [isPasswordProtected, setIsPasswordProtected] = useState(false);
+    const [password, setPassword] = useState('');
+    const [hasExpiry, setHasExpiry] = useState(false);
+    const [expiryDate, setExpiryDate] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const { toast } = useToast();
 
-    const handleShare = () => {
-        onShare(email, permission);
-        setEmail('');
-        setPermission('viewer');
-        setIsOpen(false);
+    const handleShare = async () => {
+        try {
+            setIsLoading(true);
+            const data: CreateSharedLinkDto = {
+                item_id: itemId,
+                item_type: itemType,
+                permission_type: permission,
+                recipient_email: email,
+                ...(isPasswordProtected && password && { password }),
+                ...(hasExpiry && expiryDate && { expiry_date: expiryDate }),
+            };
+            
+            console.log("the data to be submitted is", data);
+            await sharedLinksService.createSharedLink(data);
+            
+            toast({
+                title: "Link shared successfully",
+                description: `A share link has been sent to ${email}`,
+            });
+
+            // Reset form
+            setEmail('');
+            setPermission('viewer');
+            setIsPasswordProtected(false);
+            setPassword('');
+            setHasExpiry(false);
+            setExpiryDate('');
+            setIsOpen(false);
+            onShareComplete();
+        } catch (error) {
+            toast({
+                title: "Failed to share",
+                description: "There was an error sharing the item. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const getMinExpiryDate = () => {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        return tomorrow.toISOString().split('T')[0];
     };
 
     return (
@@ -46,7 +98,7 @@ export function ShareDialog({ fileName, onShare }: ShareDialogProps) {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Share "{fileName}"</DialogTitle>
+                    <DialogTitle>Share "{itemName}"</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
@@ -61,7 +113,7 @@ export function ShareDialog({ fileName, onShare }: ShareDialogProps) {
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="permission">Permission</Label>
-                        <Select value={permission} onValueChange={setPermission}>
+                        <Select value={permission} onValueChange={(value) => setPermission(value as PermissionType)}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select permission" />
                             </SelectTrigger>
@@ -71,19 +123,62 @@ export function ShareDialog({ fileName, onShare }: ShareDialogProps) {
                                 <SelectItem value="owner">Owner</SelectItem>
                             </SelectContent>
                         </Select>
+                        <div className="text-sm text-gray-500">
+                            {permission === 'viewer' && 'Can view the item'}
+                            {permission === 'editor' && 'Can view and edit the item'}
+                            {permission === 'owner' && 'Has full control of the item'}
+                        </div>
                     </div>
-                    <div className="text-sm text-gray-500">
-                        {permission === 'viewer' && 'Can view the file'}
-                        {permission === 'editor' && 'Can view and edit the file'}
-                        {permission === 'owner' && 'Has full control of the file'}
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="password-protection">Password Protection</Label>
+                        <Switch
+                            id="password-protection"
+                            checked={isPasswordProtected}
+                            onCheckedChange={setIsPasswordProtected}
+                        />
                     </div>
+                    {isPasswordProtected && (
+                        <div className="grid gap-2">
+                            <Label htmlFor="password">Password</Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                placeholder="Enter password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="expiry">Set Expiry Date</Label>
+                        <Switch
+                            id="expiry"
+                            checked={hasExpiry}
+                            onCheckedChange={setHasExpiry}
+                        />
+                    </div>
+                    {hasExpiry && (
+                        <div className="grid gap-2">
+                            <Label htmlFor="expiry-date">Expiry Date</Label>
+                            <Input
+                                id="expiry-date"
+                                type="date"
+                                min={getMinExpiryDate()}
+                                value={expiryDate}
+                                onChange={(e) => setExpiryDate(e.target.value)}
+                            />
+                        </div>
+                    )}
                 </div>
                 <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={() => setIsOpen(false)}>
                         Cancel
                     </Button>
-                    <Button onClick={handleShare} disabled={!email}>
-                        Share
+                    <Button 
+                        onClick={handleShare} 
+                        disabled={!email || isLoading || (isPasswordProtected && !password) || (hasExpiry && !expiryDate)}
+                    >
+                        {isLoading ? 'Sharing...' : 'Share'}
                     </Button>
                 </div>
             </DialogContent>

@@ -6,6 +6,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=research_automation_platform
+      - GUNICORN_CMD_ARGS=--limit-request-field-size 8190
     container_name: postgres
     volumes:
       - ./pgdata:/var/lib/postgresql/data
