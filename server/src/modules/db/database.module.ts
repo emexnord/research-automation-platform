@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import configuration from 'src/config';
 
 const config = configuration();
-
 @Module({
   imports: [
     TypeOrmModule.forRoot({
