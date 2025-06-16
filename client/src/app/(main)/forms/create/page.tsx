@@ -8,12 +8,17 @@ import { Button } from '@/registry/new-york-v4/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/registry/new-york-v4/ui/card';
 import { Input } from '@/registry/new-york-v4/ui/input';
 
-import { Survey, mockApi } from '../mock-data';
+import { useSession } from 'next-auth/react';
 
 const CreateSurvey = () => {
     const router = useRouter();
-    const [title, setTitle] = useState('');
+    const [context, setContext] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
+
+    const teamId = 'your-team-id';
+    const numberOfQuestions = 5;
+
+    const { data: session, status } = useSession();
 
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -28,24 +33,29 @@ const CreateSurvey = () => {
         setIsGenerating(true);
 
         try {
-            // Create new survey
-            const survey = await mockApi.createSurvey({
-                title: 'My Survey',
-                description: 'This is a sample survey.',
-                isPublished: false,
-                questions: [] // or some actual question data
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/form/ai`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${session?.accessToken ?? ''}`
+                },
+                body: JSON.stringify({
+                    context,
+                    numberOfQuestions,
+                    teamId
+                })
             });
 
-            // Generate questions using AI
-            // const questions = await mockApi.generateSurveyQuestions(title);
+            if (!response.ok) {
+                throw new Error(`Failed to generate form: ${response.statusText}`);
+            }
 
-            // TODO: Update survey with generated questions
-            // await mockApi.updateSurvey(survey.id, { questions });
+            const form = await response.json();
 
-            // Redirect to edit page
-            router.push(`/forms/${survey.id}/edit`);
+            // Redirect to form edit page
+            router.push(`/forms/${form.id}/edit`);
         } catch (error) {
-            console.error('Failed to generate form:', error);
+            console.error('Error generating form:', error);
         } finally {
             setIsGenerating(false);
         }
@@ -60,18 +70,18 @@ const CreateSurvey = () => {
                 <CardContent>
                     <form onSubmit={handleSubmit} className='space-y-6'>
                         <div className='space-y-2'>
-                            <label htmlFor='title' className='text-lg font-medium'>
-                                What would you like to create a survey about?
+                            <label htmlFor='context' className='text-lg font-medium'>
+                                What's the research context or topic?
                             </label>
                             <p className='text-sm text-gray-500'>
-                                Enter a title or topic for your research survey, and our AI will help you create the
-                                perfect questions.
+                                Describe the purpose of your research, and our AI will help you generate the right
+                                survey questions.
                             </p>
                             <Input
-                                id='title'
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                placeholder='e.g., Impact of Remote Work on Team Collaboration'
+                                id='context'
+                                value={context}
+                                onChange={(e) => setContext(e.target.value)}
+                                placeholder='e.g., How remote work affects team productivity'
                                 className='text-lg'
                                 required
                             />
