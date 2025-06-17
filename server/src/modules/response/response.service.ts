@@ -49,4 +49,81 @@ export class ResponseService {
 
     return responses;
   }
+
+  // analytic methods
+
+  async getTotalResponsesForForm(formId: string): Promise<number> {
+    return this.responseRepository.count({ where: { formId } });
+  }
+
+  async getAnswerPercentages(
+    questionId: string,
+  ): Promise<Record<string, number>> {
+    const answers = await this.answerRepository.find({
+      where: { questionId },
+    });
+
+    const total = answers.length;
+    const countMap: Record<string, number> = {};
+
+    for (const ans of answers) {
+      countMap[ans.content] = (countMap[ans.content] || 0) + 1;
+    }
+
+    const percentageMap: Record<string, number> = {};
+    for (const option in countMap) {
+      percentageMap[option] = +((countMap[option] / total) * 100).toFixed(2);
+    }
+
+    return percentageMap;
+  }
+
+  async getGroupedAnswersByQuestion(
+    formId: string,
+  ): Promise<Record<string, string[]>> {
+    const responses = await this.responseRepository.find({
+      where: { formId },
+      relations: ['answers'],
+    });
+
+    const grouped: Record<string, string[]> = {};
+
+    responses.forEach((response) => {
+      response.answers.forEach((answer) => {
+        if (!grouped[answer.questionId]) {
+          grouped[answer.questionId] = [];
+        }
+        grouped[answer.questionId].push(answer.content);
+      });
+    });
+
+    return grouped;
+  }
+
+  async getMostCommonAnswer(
+    questionId: string,
+  ): Promise<{ answer: string; count: number }> {
+    const answers = await this.answerRepository.find({ where: { questionId } });
+
+    const countMap: Record<string, number> = {};
+    for (const a of answers) {
+      countMap[a.content] = (countMap[a.content] || 0) + 1;
+    }
+
+    const mostCommon = Object.entries(countMap).sort((a, b) => b[1] - a[1])[0];
+    return { answer: mostCommon[0], count: mostCommon[1] };
+  }
+
+  async getAverageAnswersPerResponse(formId: string): Promise<number> {
+    const responses = await this.responseRepository.find({
+      where: { formId },
+      relations: ['answers'],
+    });
+
+    const totalAnswers = responses.reduce(
+      (sum, res) => sum + res.answers.length,
+      0,
+    );
+    return +(totalAnswers / responses.length).toFixed(2);
+  }
 }

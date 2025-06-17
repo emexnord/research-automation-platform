@@ -29,6 +29,7 @@ export default function SurveyForm({ questions, onSubmit }: SurveyFormProps) {
             questionId: id,
             text: value
         }));
+        console.log('Submitting responses:', responseArray);
         onSubmit(responseArray);
     };
 

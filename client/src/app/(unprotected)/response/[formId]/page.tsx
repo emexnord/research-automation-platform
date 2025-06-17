@@ -7,8 +7,10 @@ import { useParams } from 'next/navigation';
 import { SurveyResponse, mockApi } from '@/app/(main)/forms/mock-data';
 import SurveyForm from '@/components/SurveyForm';
 
+import { Answer } from '../../../../../types/answer.type';
 import { Form } from '../../../../../types/form.type';
 import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
 
 export default function SurveyResponsesPage() {
     const params = useParams();
@@ -19,6 +21,40 @@ export default function SurveyResponsesPage() {
     const [error, setError] = useState<string | null>(null);
 
     const { data: session } = useSession();
+
+    const onSubmit = async (responses: Answer[]) => {
+        console.log('Submitting responses:', responses);
+        try {
+            const payload = {
+                formId,
+                answers: responses.map((r) => ({
+                    questionId: r.questionId,
+                    content: Array.isArray(r.text) ? r.text.join(', ') : r.text
+                }))
+            };
+
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/response`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                throw new Error(`Submission failed with status ${res.status}`);
+            }
+
+            const data = await res.json();
+            console.log('Submitted successfully:', data);
+            toast.success('Response submitted successfully!');
+
+            // You can show a success message or redirect
+        } catch (error) {
+            console.error('Failed to submit response:', error);
+            // You can show an error toast/message here
+        }
+    };
 
     useEffect(() => {
         if (!session) return;
@@ -90,7 +126,7 @@ export default function SurveyResponsesPage() {
             <div>
                 <h1 className='mb-4 text-2xl font-bold'>{form.title}</h1>
             </div>
-            <SurveyForm questions={form.questions} onSubmit={() => {}} />
+            <SurveyForm questions={form.questions} onSubmit={onSubmit} />
         </div>
     );
 }
