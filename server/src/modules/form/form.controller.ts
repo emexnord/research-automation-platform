@@ -5,6 +5,7 @@ import {
   Param,
   Body,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { FormService } from './form.service';
 import { CreateFormDto } from './dto/create-form.dto';
@@ -12,7 +13,11 @@ import { Form } from './entities/form.entity';
 import { GetUser } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
 import { GenerateAIFormDto } from './dto/generate-form.dto';
+import { JwtAuthGuard } from '../jwt/jwt-auth.guard';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('access-token')
+@UseGuards(JwtAuthGuard)
 @Controller('form')
 export class FormController {
   constructor(private readonly formService: FormService) {}

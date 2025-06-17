@@ -13,7 +13,7 @@ export class GeminiService {
     context: string,
     numberOfQuestions: number,
   ): Promise<GeneratedQuestion[]> {
-    const apiKey = config.gemini.apiKey;
+    const apiKey = "AIzaSyC7XiQK7lgf-UDpKmoCL5Tg9-TTuq5amLY";
 
     if (!apiKey) return MOCK_AI_RESPONSE;
 

@@ -39,8 +39,7 @@ export function ShareDialog({ itemId, itemName, itemType, onShareComplete }: Sha
     const [expiryDate, setExpiryDate] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const token =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im1hbWVtb2hhbW1lZDIwMTdAZ21haWwuY29tIiwiaWQiOiIzZGM4ZDJiYS01MzI5LTQ0NjYtYmQ4MS1mNGFmNjYwNjEyNjciLCJpbWFnZSI6IiIsInVzZXJuYW1lIjoiIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NTAxMTY3OTUsImV4cCI6MTc1MDcyMTU5NX0.TPJRpycLgy1P2To7HC2VQXVAONgFbSgq89UDgWuMZbI';
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFiZGVsYWhtb2hhbW1lZDA5MTlAZ21haWwuY29tIiwiaWQiOiJiMGFlOTVkMy1iZmVlLTQ0NTctOGY2NS0yOTA1NTE4YmUxYWIiLCJpbWFnZSI6IiIsInVzZXJuYW1lIjoiIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NTAxNTEzNDEsImV4cCI6MTc1MDc1NjE0MX0.h16Z_rV-yHTfbrnHiPX69JM1oJEMHuegXSzKKQ_q0sg"
 
     // const toFakeUUID = (id: string | number): string => {
     //     const base = id.toString().padStart(12, '0'); // pad to make sure it's long enough

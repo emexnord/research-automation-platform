@@ -16,6 +16,7 @@ import { Input } from '@/registry/new-york-v4/ui/input';
 import { ShareDialog } from './share-dialog';
 import { formatDistanceToNow } from 'date-fns';
 import { Download, FileIcon, FolderIcon, Trash2, Upload } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 
 
@@ -30,8 +31,8 @@ export function FileManager() {
     useEffect(() => {
         loadFiles();
     }, []);
-    const token =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im1hbWVtb2hhbW1lZDIwMTdAZ21haWwuY29tIiwiaWQiOiIzZGM4ZDJiYS01MzI5LTQ0NjYtYmQ4MS1mNGFmNjYwNjEyNjciLCJpbWFnZSI6IiIsInVzZXJuYW1lIjoiIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NTAxMTY3OTUsImV4cCI6MTc1MDcyMTU5NX0.TPJRpycLgy1P2To7HC2VQXVAONgFbSgq89UDgWuMZbI';
+    const { data: session }  = useSession();
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFiZGVsYWhtb2hhbW1lZDA5MTlAZ21haWwuY29tIiwiaWQiOiJiMGFlOTVkMy1iZmVlLTQ0NTctOGY2NS0yOTA1NTE4YmUxYWIiLCJpbWFnZSI6IiIsInVzZXJuYW1lIjoiIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NTAxNTEzNDEsImV4cCI6MTc1MDc1NjE0MX0.h16Z_rV-yHTfbrnHiPX69JM1oJEMHuegXSzKKQ_q0sg"
 
     const loadFiles = async () => {
         try {
@@ -40,6 +41,7 @@ export function FileManager() {
                     Authorization: `Bearer ${token}`
                 }
             });
+
             console.log('Files loaded:', response.data);
             if (response.status !== 200) {
                 throw new Error('Invalid response format');

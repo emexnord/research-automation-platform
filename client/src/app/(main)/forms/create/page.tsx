@@ -17,7 +17,7 @@ const CreateSurvey = () => {
     const [numberOfQuestions, setNumberOfQuestions] = useState(1);
     const [isGenerating, setIsGenerating] = useState(false);
 
-    const teamId = 'cacc1a2c-a70d-40f8-ba6b-dac1d3c539ac';
+    const teamId = '634577e5-c57b-4772-80fa-92b2a796e507';
 
     const { data: session, status } = useSession();
 
