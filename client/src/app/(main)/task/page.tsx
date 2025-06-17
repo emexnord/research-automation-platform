@@ -1,8 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-
-
+import { useEffect, useState } from 'react';
 
 import { toast } from '@/components/ui/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/registry/new-york-v4/ui/avatar';
@@ -10,22 +8,40 @@ import { Badge } from '@/registry/new-york-v4/ui/badge';
 import { Button } from '@/registry/new-york-v4/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/registry/new-york-v4/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/registry/new-york-v4/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/registry/new-york-v4/ui/dropdown-menu';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from '@/registry/new-york-v4/ui/dropdown-menu';
 import { Input } from '@/registry/new-york-v4/ui/input';
 import { Label } from '@/registry/new-york-v4/ui/label';
 import { ScrollArea } from '@/registry/new-york-v4/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/registry/new-york-v4/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/registry/new-york-v4/ui/tabs';
 import { Textarea } from '@/registry/new-york-v4/ui/textarea';
+import { useTeamStore } from '@/store/projectStore';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 
-
-
-import { ArrowRight, Calendar, Clock, Edit, Eye, History, MessageSquare, MoreHorizontal, Paperclip, Plus, Search, Trash2, UserCheck, UserPlus, UserX, Users } from 'lucide-react';
-
-
-
-
+import {
+    ArrowRight,
+    Calendar,
+    Clock,
+    Edit,
+    Eye,
+    History,
+    MessageSquare,
+    MoreHorizontal,
+    Paperclip,
+    Plus,
+    Search,
+    Trash2,
+    UserCheck,
+    UserPlus,
+    UserX,
+    Users
+} from 'lucide-react';
 
 interface User {
     id: string;
@@ -462,6 +478,12 @@ export default function ResearchManagementTool() {
     const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+
+    const { currentTeam } = useTeamStore();
+
+    useEffect(() => {
+        console.log('Current Team:', currentTeam);
+    }, [currentTeam]);
 
     // New task form state
     const [newTask, setNewTask] = useState({

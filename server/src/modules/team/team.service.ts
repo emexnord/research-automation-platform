@@ -13,6 +13,14 @@ export class TeamService {
   async getTeamById(teamId: string): Promise<Team | null> {
     return await this.teamRepository.findOne({ where: { id: teamId } });
   }
+
+  async getAllTeams(userId: string): Promise<Team[]> {
+    return this.teamRepository
+      .createQueryBuilder('team')
+      .where(':userId = ANY(team.members)', { userId })
+      .getMany();
+  }
+
   async createTeam(
     name: string,
     createdBy: string,
