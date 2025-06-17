@@ -14,6 +14,6 @@ import { ResponseController } from './response.controller';
 })
 export class ResponseModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(JwtMiddleware).forRoutes('/response');
+    // consumer.apply(JwtMiddleware).forRoutes('/response');
   }
 }
