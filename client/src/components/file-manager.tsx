@@ -126,7 +126,6 @@ export function FileManager() {
         }
     };
 
-
     const formatFileSize = (bytes?: number) => {
         if (!bytes) return '';
         const units = ['B', 'KB', 'MB', 'GB'];
@@ -183,14 +182,14 @@ export function FileManager() {
                                     </div>
                                 </div>
                                 <div className='flex items-center gap-2'>
-                                   
-                                        <Button
-                                            variant='ghost'
-                                            size='icon'
-                                            onClick={() => window.open(`files/${file.file_id}`, '_blank')}>
-                                            <Download className='h-4 w-4' />
-                                        </Button>
-                                    
+                                    <Button
+                                        variant='ghost'
+                                        size='icon'
+                                        onClick={() => window.open(`http://localhost:4000/files/${file.filename}/download`, '_blank')}
+                                    >
+                                        <Download className='h-4 w-4' />
+                                    </Button>
+
                                     <ShareDialog
                                         itemId={file.file_id}
                                         itemName={file.filename}
