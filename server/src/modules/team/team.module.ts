@@ -4,9 +4,10 @@ import { Team } from './entities/team.entity';
 import { TeamService } from './team.service';
 import { JwtMiddleware } from '../jwt/jwt.middleware';
 import { TeamController } from './team.controller';
+import { User } from '../user/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Team])],
+  imports: [TypeOrmModule.forFeature([Team, User])],
   providers: [TeamService],
   controllers: [TeamController],
   exports: [TeamService],

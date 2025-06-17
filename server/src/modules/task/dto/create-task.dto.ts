@@ -1,5 +1,6 @@
 import { IsString, IsOptional, IsEnum, IsArray, IsDate, IsNumber, Min } from 'class-validator';
 import { TaskPriority, TaskStatus } from '../entities/task.entity';
+import { Type } from 'class-transformer';
 
 export class CreateTaskDto {
   @IsString()
@@ -33,8 +34,9 @@ export class CreateTaskDto {
   }>;
 
   @IsDate()
+  @Type(() => Date)
   @IsOptional()
-  dueDate?: Date;
+  dueDate?: Date = new Date(); 
 
   @IsNumber()
   @Min(0)

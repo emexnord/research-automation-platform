@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-
-
+import { useState, useEffect } from 'react';
+import api from '@/lib/api';
 
 import { toast } from '@/components/ui/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/registry/new-york-v4/ui/avatar';
@@ -19,13 +18,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/registry/new-york-v4
 import { Textarea } from '@/registry/new-york-v4/ui/textarea';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 
-
-
 import { ArrowRight, Calendar, Clock, Edit, Eye, History, MessageSquare, MoreHorizontal, Paperclip, Plus, Search, Trash2, UserCheck, UserPlus, UserX, Users } from 'lucide-react';
-
-
-
-
+import { useSession } from 'next-auth/react';
 
 interface User {
     id: string;
@@ -462,6 +456,39 @@ export default function ResearchManagementTool() {
     const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [teamMembers, setTeamMembers] = useState<User[]>([]);
+
+    const { data: session } = useSession()
+
+    // Fetch team members
+    useEffect(() => {
+        if (!session) return;
+        console.log(session)
+        const fetchTeamMembers = async () => {
+            try {
+
+                const response = await api.get(
+                    `/team/634577e5-c57b-4772-80fa-92b2a796e507/members`,
+                    {
+                      headers: {
+                        Authorization: `Bearer ${session.accessToken}`, 
+                      },
+                    }
+                  );
+                setTeamMembers(response.data);
+            } catch (error) {
+                console.error('Error fetching team members:', error);
+                toast({
+                    title: 'Error',
+                    description: 'Failed to fetch team members',
+                    variant: 'destructive'
+                });
+            }
+        };
+
+        fetchTeamMembers();
+    }, [session]);
 
     // New task form state
     const [newTask, setNewTask] = useState({
@@ -777,82 +804,100 @@ export default function ResearchManagementTool() {
         }
     };
 
-    const createTask = () => {
-        if (!newTask.title.trim() || !currentProject) return;
-
-        const task: Task = {
-            id: `task-${Date.now()}`,
-            title: newTask.title,
-            description: newTask.description,
-            taskId: `${currentProject.name.substring(0, 2).toUpperCase()}-${String(Date.now()).slice(-3)}`,
-            assigneeId: newTask.assigneeId || undefined,
-            priority: newTask.priority,
-            status: selectedColumnId as Task['status'],
-            createdAt: new Date().toISOString(),
-            dueDate: newTask.dueDate || undefined,
-            estimatedHours: newTask.estimatedHours || undefined,
-            actualHours: 0,
-            labels: newTask.labels.map((label) => ({
-                name: label,
-                color: 'bg-blue-500',
-                textColor: 'text-white'
-            })),
-            assignmentHistory: newTask.assigneeId
-                ? [
-                      {
-                          assigneeId: newTask.assigneeId,
-                          assignedBy: currentUser.id,
-                          assignedAt: new Date().toISOString(),
-                          action: 'assigned' as const
-                      }
-                  ]
-                : [],
-            comments: [],
-            attachments: [],
-            timeEntries: [],
-            subtasks: [],
-            activity: [
-                {
-                    id: `act-${Date.now()}`,
-                    type: 'created',
-                    description: 'Task created',
-                    userId: currentUser.id,
-                    createdAt: new Date().toISOString()
-                }
-            ],
-            relatedTasks: []
-        };
-
-        const newProjects = projects.map((project) => {
-            if (project.id === currentProjectId) {
-                const newColumns = project.columns.map((column) => {
-                    if (column.id === selectedColumnId) {
-                        return {
-                            ...column,
-                            tasks: [...column.tasks, task]
-                        };
-                    }
-
-                    return column;
+    const createTask = async () => {
+        console.log("creating task")
+        if (!newTask.title.trim() || !session?.accessToken) {
+            if (!session?.accessToken) {
+                toast({
+                    title: 'Authentication Error',
+                    description: 'You are not logged in. Please log in to create a task.',
+                    variant: 'destructive'
                 });
-
-                return { ...project, columns: newColumns };
             }
 
-            return project;
-        });
+            return;
+        }
 
-        setProjects(newProjects);
-        setNewTask({
-            title: '',
-            description: '',
-            priority: 'medium',
-            assigneeId: '',
-            labels: [],
-            dueDate: '',
-            estimatedHours: 0
-        });
-        setIsCreateTaskOpen(false);
+        setIsLoading(true);
+
+        try {
+
+            const taskPayload = {
+                title: newTask.title, 
+                description: newTask.description || undefined, 
+                teamId: '634577e5-c57b-4772-80fa-92b2a796e507',
+                priority: newTask.priority || undefined, 
+                status: 'todo', 
+                assigneeId: newTask.assigneeId === 'unassigned' ? undefined : newTask.assigneeId, // Optional
+                dueDate: newTask.dueDate ? new Date(newTask.dueDate).toISOString() : undefined, // Optional
+                estimatedHours: newTask.estimatedHours || undefined, // Optional
+                labels: newTask.labels.length > 0
+                    ? newTask.labels.map((label) => ({
+                          name: label,
+                          color: 'bg-blue-500',
+                          textColor: 'text-white',
+                      }))
+                    : undefined, 
+            };
+            console.log("Task Payload:", taskPayload);
+            const response = await api.post(
+                `/teams/634577e5-c57b-4772-80fa-92b2a796e507/tasks`,
+                taskPayload, 
+                {
+                    headers: { 
+                      Authorization: `Bearer ${session.accessToken}`,
+                    },
+                }
+            );
+
+            const task = response.data;
+            console.log("data -> ", task)
+
+
+            const newProjects = projects.map((project) => {
+                if (project.id === currentProjectId) {
+                    const newColumns = project.columns.map((column) => {
+                        if (column.id === 'todo') {
+                            return {
+                                ...column,
+                                tasks: [...column.tasks, task]
+                            };
+                        }
+
+                        return column;
+                    });
+
+                    return { ...project, columns: newColumns };
+                }
+
+                return project;
+            });
+
+            setProjects(newProjects);
+            setNewTask({
+                title: '',
+                description: '',
+                priority: 'medium',
+                assigneeId: '',
+                labels: [],
+                dueDate: '',
+                estimatedHours: 0
+            });
+            setIsCreateTaskOpen(false);
+            toast({
+                title: 'Task Created',
+                description: 'The task was created successfully.'
+            });
+        } catch (error) {
+            console.error('Error creating task:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to create task. Please try again.',
+                variant: 'destructive'
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const createProject = () => {
@@ -1019,60 +1064,109 @@ export default function ResearchManagementTool() {
                         </Select>
                     </div>
                     <div className='flex items-center space-x-4'>
-                        <Dialog open={isCreateProjectOpen} onOpenChange={setIsCreateProjectOpen}>
+                        <Dialog open={isCreateTaskOpen} onOpenChange={setIsCreateTaskOpen}>
                             <DialogTrigger asChild>
-                                <Button variant='outline' size='sm'>
+                                <Button>
                                     <Plus className='mr-2 h-4 w-4' />
-                                    New Project
+                                    New Task
                                 </Button>
                             </DialogTrigger>
                             <DialogContent>
                                 <DialogHeader>
-                                    <DialogTitle>Create New Project</DialogTitle>
+                                    <DialogTitle>Create New Task</DialogTitle>
                                 </DialogHeader>
                                 <div className='space-y-4'>
                                     <div>
-                                        <Label htmlFor='project-name'>Project Name</Label>
+                                        <Label htmlFor='task-title'>Title</Label>
                                         <Input
-                                            id='project-name'
-                                            value={newProject.name}
-                                            onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-                                            placeholder='Enter project name...'
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor='project-description'>Description</Label>
-                                        <Textarea
-                                            id='project-description'
-                                            value={newProject.description}
+                                            id='task-title'
+                                            value={newTask.title}
                                             onChange={(e) =>
-                                                setNewProject({ ...newProject, description: e.target.value })
+                                                setNewTask({ ...newTask, title: e.target.value })
                                             }
-                                            placeholder='Enter project description...'
+                                            placeholder='Enter task title...'
                                         />
                                     </div>
                                     <div>
-                                        <Label>Color Theme</Label>
-                                        <div className='mt-2 flex space-x-2'>
-                                            {[
-                                                'from-blue-500 to-purple-600',
-                                                'from-green-500 to-teal-600',
-                                                'from-red-500 to-pink-600',
-                                                'from-yellow-500 to-orange-600',
-                                                'from-indigo-500 to-blue-600'
-                                            ].map((color) => (
-                                                <button
-                                                    key={color}
-                                                    onClick={() => setNewProject({ ...newProject, color })}
-                                                    className={`h-8 w-8 rounded-full bg-gradient-to-r ${color} ${
-                                                        newProject.color === color ? 'ring-2 ring-gray-400' : ''
-                                                    }`}
-                                                />
-                                            ))}
+                                        <Label htmlFor='task-description'>Description</Label>
+                                        <Textarea
+                                            id='task-description'
+                                            value={newTask.description}
+                                            onChange={(e) =>
+                                                setNewTask({ ...newTask, description: e.target.value })
+                                            }
+                                            placeholder='Enter task description...'
+                                        />
+                                    </div>
+                                    <div className='grid grid-cols-2 gap-4'>
+                                        <div>
+                                            <Label htmlFor='task-priority'>Priority</Label>
+                                            <Select
+                                                value={newTask.priority}
+                                                onValueChange={(value: any) =>
+                                                    setNewTask({ ...newTask, priority: value })
+                                                }>
+                                                <SelectTrigger>
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value='low'>Low</SelectItem>
+                                                    <SelectItem value='medium'>Medium</SelectItem>
+                                                    <SelectItem value='high'>High</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div>
+                                            <Label htmlFor='task-assignee'>Assignee</Label>
+                                            <Select
+                                                value={newTask.assigneeId}
+                                                onValueChange={(value) =>
+                                                    setNewTask({ ...newTask, assigneeId: value })
+                                                }>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder='Select assignee' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value='unassigned'>Unassigned</SelectItem>
+                                                    {teamMembers.map((member) => (
+                                                        <SelectItem key={member.id} value={member.id}>
+                                                            {member.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                     </div>
-                                    <Button onClick={createProject} className='w-full'>
-                                        Create Project
+                                    <div className='grid grid-cols-2 gap-4'>
+                                        <div>
+                                            <Label htmlFor='task-due-date'>Due Date</Label>
+                                            <Input
+                                                id='task-due-date'
+                                                type='date'
+                                                value={newTask.dueDate}
+                                                onChange={(e) =>
+                                                    setNewTask({ ...newTask, dueDate: e.target.value })
+                                                }
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor='task-estimated-hours'>Estimated Hours</Label>
+                                            <Input
+                                                id='task-estimated-hours'
+                                                type='number'
+                                                value={newTask.estimatedHours || ''}
+                                                onChange={(e) =>
+                                                    setNewTask({
+                                                        ...newTask,
+                                                        estimatedHours: Number(e.target.value)
+                                                    })
+                                                }
+                                                placeholder='0'
+                                            />
+                                        </div>
+                                    </div>
+                                    <Button onClick={() => {createTask();}} className='w-full'>
+                                        Create Task
                                     </Button>
                                 </div>
                             </DialogContent>
@@ -1196,7 +1290,7 @@ export default function ResearchManagementTool() {
                                             <SelectContent>
                                                 <SelectItem value='unassign'>Unassign All</SelectItem>
                                                 <DropdownMenuSeparator />
-                                                {projectMembers.map((member) => (
+                                                {teamMembers.map((member) => (
                                                     <SelectItem key={member.id} value={member.id}>
                                                         {member.name}
                                                     </SelectItem>
@@ -1456,7 +1550,7 @@ export default function ResearchManagementTool() {
                                         <SelectContent>
                                             <SelectItem value='unassign'>Unassign</SelectItem>
                                             <DropdownMenuSeparator />
-                                            {projectMembers.map((member) => (
+                                            {teamMembers.map((member) => (
                                                 <SelectItem key={member.id} value={member.id}>
                                                     {member.name}
                                                 </SelectItem>
@@ -1984,118 +2078,7 @@ export default function ResearchManagementTool() {
                                             {column.tasks.length}
                                         </Badge>
                                     </div>
-                                    <Dialog open={isCreateTaskOpen} onOpenChange={setIsCreateTaskOpen}>
-                                        <DialogTrigger asChild>
-                                            <Button
-                                                variant='ghost'
-                                                size='sm'
-                                                className='h-6 w-6 p-0'
-                                                onClick={() => setSelectedColumnId(column.id)}>
-                                                <Plus className='h-4 w-4' />
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader>
-                                                <DialogTitle>Create New Task</DialogTitle>
-                                            </DialogHeader>
-                                            <div className='space-y-4'>
-                                                <div>
-                                                    <Label htmlFor='task-title'>Title</Label>
-                                                    <Input
-                                                        id='task-title'
-                                                        value={newTask.title}
-                                                        onChange={(e) =>
-                                                            setNewTask({ ...newTask, title: e.target.value })
-                                                        }
-                                                        placeholder='Enter task title...'
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <Label htmlFor='task-description'>Description</Label>
-                                                    <Textarea
-                                                        id='task-description'
-                                                        value={newTask.description}
-                                                        onChange={(e) =>
-                                                            setNewTask({ ...newTask, description: e.target.value })
-                                                        }
-                                                        placeholder='Enter task description...'
-                                                    />
-                                                </div>
-                                                <div className='grid grid-cols-2 gap-4'>
-                                                    <div>
-                                                        <Label htmlFor='task-priority'>Priority</Label>
-                                                        <Select
-                                                            value={newTask.priority}
-                                                            onValueChange={(value: any) =>
-                                                                setNewTask({ ...newTask, priority: value })
-                                                            }>
-                                                            <SelectTrigger>
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value='low'>Low</SelectItem>
-                                                                <SelectItem value='medium'>Medium</SelectItem>
-                                                                <SelectItem value='high'>High</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                    <div>
-                                                        <Label htmlFor='task-assignee'>Assignee</Label>
-                                                        <Select
-                                                            value={newTask.assigneeId}
-                                                            onValueChange={(value) =>
-                                                                setNewTask({ ...newTask, assigneeId: value })
-                                                            }>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select assignee' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value='unassigned'>Unassigned</SelectItem>
-                                                                {projectMembers.map((member) => (
-                                                                    <SelectItem key={member.id} value={member.id}>
-                                                                        {member.name}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                </div>
-                                                <div className='grid grid-cols-2 gap-4'>
-                                                    <div>
-                                                        <Label htmlFor='task-due-date'>Due Date</Label>
-                                                        <Input
-                                                            id='task-due-date'
-                                                            type='date'
-                                                            value={newTask.dueDate}
-                                                            onChange={(e) =>
-                                                                setNewTask({ ...newTask, dueDate: e.target.value })
-                                                            }
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <Label htmlFor='task-estimated-hours'>Estimated Hours</Label>
-                                                        <Input
-                                                            id='task-estimated-hours'
-                                                            type='number'
-                                                            value={newTask.estimatedHours || ''}
-                                                            onChange={(e) =>
-                                                                setNewTask({
-                                                                    ...newTask,
-                                                                    estimatedHours: Number(e.target.value)
-                                                                })
-                                                            }
-                                                            placeholder='0'
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <Button onClick={createTask} className='w-full'>
-                                                    Create Task
-                                                </Button>
-                                            </div>
-                                        </DialogContent>
-                                    </Dialog>
                                 </div>
-
                                 <Droppable droppableId={column.id}>
                                     {(provided, snapshot) => (
                                         <div
