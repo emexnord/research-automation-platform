@@ -6,12 +6,9 @@ import { useParams } from 'next/navigation';
 
 import { SurveyResponse, mockApi } from '@/app/(main)/forms/mock-data';
 import SurveyForm from '@/components/SurveyForm';
-import { Button } from '@/registry/new-york-v4/ui/button';
 
 import { Form } from '../../../../../types/form.type';
 import { useSession } from 'next-auth/react';
-import { IoShareSocial } from 'react-icons/io5';
-import { toast } from 'sonner';
 
 export default function SurveyResponsesPage() {
     const params = useParams();
@@ -72,21 +69,6 @@ export default function SurveyResponsesPage() {
         );
     }
 
-    const copyLinkToClipboard = () => {
-        const baseUrl = process.env.NEXT_PUBLIC_DOMAIN;
-        const surveyLink = `${baseUrl}/response/${form?.id}`;
-
-        try {
-            navigator.clipboard.writeText(surveyLink).then(() => {
-                toast.success('Share link copied!');
-
-                return;
-            });
-        } catch (error) {
-            console.error('Error copying link:', error);
-        }
-    };
-
     if (error) {
         return (
             <div className='container mx-auto px-4 py-8 text-center text-red-500'>
@@ -104,20 +86,9 @@ export default function SurveyResponsesPage() {
     }
 
     return (
-        <div className='container mx-auto px-4 py-8'>
-            <div className='mb-10 flex w-full justify-between rounded border border-gray-300 bg-white p-5 dark:border-gray-700 dark:bg-black'>
-                <div>
-                    <h1 className='text-2xl font-bold'>Title:</h1>
-                    <h1 className='text-xl'>{form.title}</h1>
-                </div>
-                <Button
-                    onClick={copyLinkToClipboard}
-                    className='w-auto rounded-sm px-2 py-1'
-                    aria-label='Share link'
-                    variant={'outline'}>
-                    Publish
-                    <IoShareSocial className='text-lg text-gray-700 dark:text-white' />
-                </Button>
+        <div className='container mx-auto px-4 py-8 text-center'>
+            <div>
+                <h1 className='mb-4 text-2xl font-bold'>{form.title}</h1>
             </div>
             <SurveyForm questions={form.questions} onSubmit={() => {}} />
         </div>

@@ -1,4 +1,12 @@
-import { Controller, Post, Put, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Put,
+  Param,
+  Body,
+  UseGuards,
+  Get,
+} from '@nestjs/common';
 import { TeamService } from './team.service';
 import { JwtAuthGuard } from '../jwt/jwt-auth.guard';
 import { GetUser } from '../user/decorators/user.decorator';
@@ -21,6 +29,13 @@ import { UpdateTeamDto } from './dto/update-team.dto';
 @Controller('team')
 export class TeamController {
   constructor(private readonly teamService: TeamService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Get all teams' })
+  @ApiResponse({ status: 200, description: 'List of teams' })
+  async getAllTeams(@GetUser() user: User) {
+    return this.teamService.getAllTeams(user.id);
+  }
 
   @Post()
   @ApiOperation({ summary: 'Create a new team' })
