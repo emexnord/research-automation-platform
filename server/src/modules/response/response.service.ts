@@ -100,19 +100,6 @@ export class ResponseService {
     return grouped;
   }
 
-  async getMostCommonAnswer(
-    questionId: string,
-  ): Promise<{ answer: string; count: number }> {
-    const answers = await this.answerRepository.find({ where: { questionId } });
-
-    const countMap: Record<string, number> = {};
-    for (const a of answers) {
-      countMap[a.content] = (countMap[a.content] || 0) + 1;
-    }
-
-    const mostCommon = Object.entries(countMap).sort((a, b) => b[1] - a[1])[0];
-    return { answer: mostCommon[0], count: mostCommon[1] };
-  }
 
   async getAverageAnswersPerResponse(formId: string): Promise<number> {
     const responses = await this.responseRepository.find({
@@ -125,5 +112,77 @@ export class ResponseService {
       0,
     );
     return +(totalAnswers / responses.length).toFixed(2);
+  }
+
+  async getMostCommonAnswer(
+    questionId: string,
+  ): Promise<{ answer: string; count: number } | null> {
+    const result = await this.answerRepository
+      .createQueryBuilder('answer')
+      .select('answer.content', 'answer')
+      .addSelect('COUNT(*)', 'count')
+      .where('answer.questionId = :questionId', { questionId })
+      .groupBy('answer.content')
+      .orderBy('count', 'DESC')
+      .limit(1)
+      .getRawOne();
+  
+    if (!result) return null;
+  
+    return {
+      answer: result.answer,
+      count: parseInt(result.count, 10),
+    };
+  }
+
+  async getAnswerDistribution(
+    questionId: string,
+  ): Promise<{ content: string; percentage: number; count: number }[]> {
+    const totalResult = await this.answerRepository
+      .createQueryBuilder('answer')
+      .where('answer.questionId = :questionId', { questionId })
+      .getCount();
+  
+    if (totalResult === 0) return [];
+  
+    const results = await this.answerRepository
+      .createQueryBuilder('answer')
+      .select('answer.content', 'content')
+      .addSelect('COUNT(*)', 'count')
+      .where('answer.questionId = :questionId', { questionId })
+      .groupBy('answer.content')
+      .getRawMany();
+  
+    return results.map((r) => ({
+      content: r.content,
+      count: parseInt(r.count, 10),
+      percentage: Math.round((parseInt(r.count, 10) / totalResult) * 100),
+    }));
+  }
+  
+
+  async getResponseCountByForm(formId: string): Promise<number> {
+    return this.responseRepository
+      .createQueryBuilder('response')
+      .where('response.formId = :formId', { formId })
+      .getCount();
+  }
+  
+  async getQuestionResponseCounts(
+    formId: string,
+  ): Promise<{ questionId: string; count: number }[]> {
+    return this.answerRepository
+      .createQueryBuilder('answer')
+      .select('answer.questionId', 'questionId')
+      .addSelect('COUNT(*)', 'count')
+      .where('answer.responseId IN ' +
+             this.responseRepository
+               .createQueryBuilder('response')
+               .select('response.id')
+               .where('response.formId = :formId', { formId })
+               .getQuery())
+      .setParameter('formId', formId)
+      .groupBy('answer.questionId')
+      .getRawMany();
   }
 }

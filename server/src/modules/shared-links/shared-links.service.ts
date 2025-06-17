@@ -64,12 +64,15 @@ export class SharedLinksService {
     if (link.item_type === 'file') {
       const fileEntity = await this.filesRepository.findOne({ where: { file_id: link.item_id } });
       if (!fileEntity) throw new NotFoundException('File not found');
-      const fileStream = createReadStream(join(process.cwd(), fileEntity.storage_key));
+      const filePath = join(process.cwd(), fileEntity.storage_key); // Resolve the file path
+      if (!filePath) throw new NotFoundException('File path not found');
+    
       res.set({
         'Content-Type': 'application/octet-stream',
         'Content-Disposition': `attachment; filename="${fileEntity.filename}"`,
       });
-      return fileStream.pipe(res);
+    
+      return res.sendFile(filePath); 
     } else {
       return res.status(501).json({ error: 'Folder sharing not implemented yet' });
     }
