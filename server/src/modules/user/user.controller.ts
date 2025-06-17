@@ -107,7 +107,7 @@ export class UserController {
   }
 
   @Get('profile')
-  @ApiBearerAuth()
+  @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({
     status: 200,
@@ -120,7 +120,7 @@ export class UserController {
   }
 
   @Put('profile')
-  @ApiBearerAuth()
+  @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Update current user profile and info' })
   @ApiBody({ type: UserInfoDto })
   @ApiResponse({

@@ -27,7 +27,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Tasks')
-@ApiBearerAuth()
+@ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard)
 @Controller()
 export class TaskController {

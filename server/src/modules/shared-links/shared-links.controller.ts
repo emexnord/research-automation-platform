@@ -11,7 +11,7 @@ export class SharedLinksController {
   constructor(private readonly sharedLinksService: SharedLinksService) {}
 
   @Post()
-  @ApiBearerAuth()
+  @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Create a shared link for a file or folder' })
   @ApiBody({ type: CreateSharedLinkDto, examples: {
     file: {
@@ -61,7 +61,7 @@ export class SharedLinksController {
   }
 
   @Delete(':linkId')
-  @ApiBearerAuth()
+  @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Revoke (delete) a shared link' })
   @ApiParam({ name: 'linkId', description: 'Shared Link ID' })
   @ApiResponse({ status: 200, description: 'Shared link revoked.' })

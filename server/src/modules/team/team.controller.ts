@@ -16,7 +16,7 @@ import { AddUserToTeamDto } from './dto/add-user-to-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 
 @ApiTags('Team')
-@ApiBearerAuth()
+@ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard)
 @Controller('team')
 export class TeamController {
