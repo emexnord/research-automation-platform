@@ -9,7 +9,6 @@ interface LogoProps {
 const Logo: React.FC<LogoProps> = (props) => {
     // const { theme } = useTheme();
     // const isDarkMode = theme === "dark";
-    const isDarkMode = false;
     const iconOnly = props.iconOnly || false;
     if (iconOnly) {
         return (
@@ -20,14 +19,15 @@ const Logo: React.FC<LogoProps> = (props) => {
     }
 
     return (
-        <div className='max-w-[155px]'>
-            <div className='flex items-center justify-center'>
+        <div className='max-w-auto'>
+            <div className='flex items-left justify-left'>
                 <Image
-                    src={isDarkMode ? '/darkmode-icon.svg' : '/lightmode-icon.svg'}
-                    alt='logo'
-                    width={100}
+                    src={'/logo.svg'}
+                    alt='Researchify logo'
+                    width={500}
                     height={100}
-                    // className="h-8 w-8"
+                    className="h-[100px] w-auto"
+                    objectFit="contain"
                 />
             </div>
         </div>
