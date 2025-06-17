@@ -1,53 +1,57 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import Link from 'next/link';
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarRail,
-    useSidebar,
-    SidebarGroup,
-    SidebarGroupLabel,
-    SidebarGroupContent
-} from '@/registry/new-york-v4/ui/sidebar';
-import Logo from './Logo';
-import { UserProfile } from './user-profile';
-import {
-    History,
-    ClipboardList,
-    FileText,
-    Folder,
-    Star,
-    Clock,
-    MoreHorizontal,
-    Calendar,
-    Trash2,
-    ChevronDown,
-    GitPullRequestArrow
-} from 'lucide-react';
-import { IoChevronDown, IoChevronForward } from 'react-icons/io5';
+import { useRouter } from 'next/navigation';
+
+import { Team } from '@/app/(auth)/project-signin/page';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/registry/new-york-v4/ui/dropdown-menu";
-import { useProjectStore, Project } from '@/store/projectStore';
-import { useRouter } from 'next/navigation';
+    DropdownMenuTrigger
+} from '@/registry/new-york-v4/ui/dropdown-menu';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarGroupLabel,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarRail,
+    useSidebar
+} from '@/registry/new-york-v4/ui/sidebar';
+import { useTeamStore } from '@/store/projectStore';
+
+import Logo from './Logo';
+import { UserProfile } from './user-profile';
+import {
+    Calendar,
+    ChevronDown,
+    ClipboardList,
+    Clock,
+    FileText,
+    Folder,
+    GitPullRequestArrow,
+    History,
+    MoreHorizontal,
+    Star,
+    Trash2
+} from 'lucide-react';
+import { IoChevronDown, IoChevronForward } from 'react-icons/io5';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { state, setOpen } = useSidebar();
     const [showHistory, setShowHistory] = useState(false);
     const router = useRouter();
 
-    const { currentProject, availableProjects, setProject, clearProjects } = useProjectStore();
+    const { currentTeam, availableTeams, setTeam, clearTeams } = useTeamStore();
 
     useEffect(() => {
         if (state === 'collapsed') {
@@ -60,8 +64,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         setShowHistory((prev) => !prev);
     };
 
-    const handleProjectSwitch = (project: Project) => {
-        setProject(project);
+    const handleProjectSwitch = (team: Team) => {
+        setTeam(team);
         // You might want to navigate to the task page or refresh the current page
         router.push('/task');
     };
@@ -76,33 +80,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <Link href='/' className='mb-2'>
                     {state === 'expanded' ? <Logo /> : <Logo iconOnly />}
                 </Link>
-                {state === 'expanded' && currentProject && (
+                {state === 'expanded' && currentTeam && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <SidebarMenuButton className="w-full flex justify-between items-center">
-                                <div className="flex items-center gap-2">
+                            <SidebarMenuButton className='flex w-full items-center justify-between'>
+                                <div className='flex items-center gap-2'>
                                     <GitPullRequestArrow size={20} />
-                                    <span>{currentProject.name}</span>
+                                    <span>{currentTeam.name}</span>
                                 </div>
                                 <ChevronDown size={16} />
                             </SidebarMenuButton>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
-                            <div className="px-2 py-1.5 text-sm font-semibold">
-                                Projects
-                            </div>
+                        <DropdownMenuContent className='w-[var(--radix-dropdown-menu-trigger-width)]'>
+                            <div className='px-2 py-1.5 text-sm font-semibold'>Projects</div>
                             <DropdownMenuSeparator />
-                            {availableProjects.map((project) => (
-                                <DropdownMenuItem key={project.id} onClick={() => handleProjectSwitch(project)} className="cursor-pointer">
-                                    <div className="flex items-center gap-2">
+                            {availableTeams.map((team) => (
+                                <DropdownMenuItem
+                                    key={team.id}
+                                    onClick={() => handleProjectSwitch(team)}
+                                    className='cursor-pointer'>
+                                    <div className='flex items-center gap-2'>
                                         <GitPullRequestArrow size={16} />
-                                        <span>{project.name}</span>
+                                        <span>{team.name}</span>
                                     </div>
                                 </DropdownMenuItem>
                             ))}
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={handleAddNewProject} className="cursor-pointer">
-                                <div className="flex items-center gap-2">
+                            <DropdownMenuItem onClick={handleAddNewProject} className='cursor-pointer'>
+                                <div className='flex items-center gap-2'>
                                     <span>Add new project</span>
                                 </div>
                             </DropdownMenuItem>

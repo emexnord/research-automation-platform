@@ -22,6 +22,13 @@ import { UpdateTeamDto } from './dto/update-team.dto';
 export class TeamController {
   constructor(private readonly teamService: TeamService) {}
 
+  @Get()
+  @ApiOperation({ summary: 'Get all teams' })
+  @ApiResponse({ status: 200, description: 'List of teams' })
+  async getAllTeams(@GetUser() user: User) {
+    return this.teamService.getAllTeams(user.id);
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create a new team' })
   @ApiBody({

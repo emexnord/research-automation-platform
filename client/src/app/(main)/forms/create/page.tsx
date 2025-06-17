@@ -15,7 +15,7 @@ const CreateSurvey = () => {
     const [context, setContext] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
 
-    const teamId = 'your-team-id';
+    const teamId = 'cacc1a2c-a70d-40f8-ba6b-dac1d3c539ac';
     const numberOfQuestions = 5;
 
     const { data: session, status } = useSession();
@@ -53,7 +53,7 @@ const CreateSurvey = () => {
             const form = await response.json();
 
             // Redirect to form edit page
-            router.push(`/forms/${form.id}/edit`);
+            router.push(`/forms/${form.id}`);
         } catch (error) {
             console.error('Error generating form:', error);
         } finally {

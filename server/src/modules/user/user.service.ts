@@ -26,8 +26,6 @@ import { generateSalt, hashPassword } from 'src/utils/password';
 import { EmailService } from '../shared/email.service';
 import { UsersInfo } from './entities/users_info.entity';
 import { UserInfoDto } from './dto/user-info.dto';
-import { GetUsersDto } from './dto/get-users.dto';
-import { PaginatedUsersDto } from './dto/paginated-users.dto';
 
 const config = configuration();
 

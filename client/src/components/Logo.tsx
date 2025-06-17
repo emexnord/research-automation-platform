@@ -26,7 +26,7 @@ const Logo: React.FC<LogoProps> = (props) => {
                     alt='Researchify logo'
                     width={500}
                     height={100}
-                    className="h-[100px] w-auto"
+                    className="h-[200px] w-auto"
                     objectFit="contain"
                 />
             </div>
