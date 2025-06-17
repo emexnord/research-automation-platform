@@ -125,23 +125,6 @@ export function FileManager() {
         }
     };
 
-    const handleShare = async (fileId: string, email: string, permission: string) => {
-        try {
-            await mockFileService.shareFile(fileId, email, permission as 'viewer' | 'editor' | 'owner');
-            await loadFiles();
-            toast({
-                title: 'File shared successfully',
-                description: `${email} now has ${permission} access to the file.`
-            });
-        } catch (err) {
-            toast({
-                title: 'Failed to share file',
-                description: 'There was an error sharing the file. Please try again.',
-                variant: 'destructive'
-            });
-            console.error(err);
-        }
-    };
 
     const formatFileSize = (bytes?: number) => {
         if (!bytes) return '';
