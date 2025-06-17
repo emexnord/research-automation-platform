@@ -1,22 +1,28 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { Suspense, useState } from 'react';
+
+
+
 import { useRouter, useSearchParams } from 'next/navigation';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
+
+
+
 import { Button } from '@/registry/new-york-v4/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/registry/new-york-v4/ui/form';
-import { Input } from '@/registry/new-york-v4/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/registry/new-york-v4/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/registry/new-york-v4/ui/form';
+import { Input } from '@/registry/new-york-v4/ui/input';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+
+
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import * as z from 'zod';
+
+
+
+
 
 const resetPasswordSchema = z.object({
   password: z.string()
@@ -143,4 +149,4 @@ export default function ResetPasswordPage() {
       <ResetPasswordContent />
     </Suspense>
   );
-} 
+}

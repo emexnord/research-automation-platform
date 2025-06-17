@@ -80,6 +80,7 @@ export function FileManager() {
                 throw new Error('File upload failed');
             }
             // setFiles((prevFiles) => [response.data, ...prevFiles]);
+            window.location.reload();
             toast({
                 title: 'File uploaded successfully',
                 description: `${file.name} has been uploaded successfully.`
@@ -182,14 +183,14 @@ export function FileManager() {
                                     </div>
                                 </div>
                                 <div className='flex items-center gap-2'>
-                                    {file.file_type === 'file' && (
+                                   
                                         <Button
                                             variant='ghost'
                                             size='icon'
-                                            onClick={() => window.open(`/api/files/${file.file_id}`, '_blank')}>
+                                            onClick={() => window.open(`files/${file.file_id}`, '_blank')}>
                                             <Download className='h-4 w-4' />
                                         </Button>
-                                    )}
+                                    
                                     <ShareDialog
                                         itemId={file.file_id}
                                         itemName={file.filename}
