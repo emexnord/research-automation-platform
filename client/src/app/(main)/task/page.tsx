@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 
 import { toast } from '@/components/ui/use-toast';
@@ -25,26 +24,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/registry/new-york-v4
 import { Textarea } from '@/registry/new-york-v4/ui/textarea';
 import { useTeamStore } from '@/store/projectStore';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
-
-import {
-    ArrowRight,
-    Calendar,
-    Clock,
-    Edit,
-    Eye,
-    History,
-    MessageSquare,
-    MoreHorizontal,
-    Paperclip,
-    Plus,
-    Search,
-    Trash2,
-    UserCheck,
-    UserPlus,
-    UserX,
-    Users
-} from 'lucide-react';
-
 import { ArrowRight, Calendar, Clock, Edit, Eye, History, MessageSquare, MoreHorizontal, Paperclip, Plus, Search, Trash2, UserCheck, UserPlus, UserX, Users } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
