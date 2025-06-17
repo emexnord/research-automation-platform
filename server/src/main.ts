@@ -22,7 +22,14 @@ async function bootstrap() {
     .setTitle('Research Automation Platform API')
     .setDescription('API documentation for file, folder, and sharing endpoints')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT', 
+      },
+      'access-token', 
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);

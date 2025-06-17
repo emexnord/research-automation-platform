@@ -6,7 +6,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
 
 @ApiTags('Folders')
-@ApiBearerAuth()
+@ApiBearerAuth('access-token')
 @Controller('folders')
 @UseGuards(JwtAuthGuard)
 export class FoldersController {

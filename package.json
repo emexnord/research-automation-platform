@@ -2,7 +2,10 @@
     "scripts": {
       "server": "pnpm --filter ./server start:dev",
       "client": "pnpm --filter ./client dev",
-      "dev": "concurrently \"pnpm server\" \"pnpm client\""
+      "dev": "concurrently \"pnpm server\" \"pnpm client\"",
+      "migration:generate": "pnpm --filter ./server migration:generate",
+      "migration:run": "pnpm --filter ./server migration:run",
+      "migration:revert": "pnpm --filter ./server migration:revert"
     },
     "devDependencies": {
       "concurrently": "^9.1.2"

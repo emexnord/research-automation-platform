@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Post,
-  Put,
-  Param,
-  Body,
-  UseGuards,
-  Get,
-} from '@nestjs/common';
+import { Controller, Post, Put, Param, Body, UseGuards, Get } from '@nestjs/common';
 import { TeamService } from './team.service';
 import { JwtAuthGuard } from '../jwt/jwt-auth.guard';
 import { GetUser } from '../user/decorators/user.decorator';
@@ -24,7 +16,7 @@ import { AddUserToTeamDto } from './dto/add-user-to-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 
 @ApiTags('Team')
-@ApiBearerAuth()
+@ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard)
 @Controller('team')
 export class TeamController {
@@ -96,5 +88,31 @@ export class TeamController {
   ) {
     // Optionally validate user is the team owner (created_by)
     return this.teamService.updateTeam(teamId, body.name, body.description);
+  }
+
+  @Get(':id/members')
+  @ApiOperation({ summary: 'Get all members of a team' })
+  @ApiParam({ name: 'id', description: 'Team ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Team members returned',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          email: { type: 'string' },
+          avatar: { type: 'string', nullable: true },
+          initials: { type: 'string' },
+          role: { type: 'string', enum: ['admin', 'member', 'viewer'] }
+        }
+      }
+    }
+  })
+  @ApiResponse({ status: 404, description: 'Team not found' })
+  async getTeamMembers(@Param('id') teamId: string) {
+    return this.teamService.getTeamMembers(teamId);
   }
 }
