@@ -12,6 +12,7 @@ import { SharedLinksModule } from './modules/shared-links/shared-links.module';
 import { FormModule } from './modules/form/form.module';
 import { ResponseModule } from './modules/response/response.module';
 import { TeamModule } from './modules/team/team.module';
+import { TaskModule } from './modules/task/task.module';
 
 const config = configuration();
 
@@ -30,6 +31,7 @@ const config = configuration();
     SharedLinksModule,
     FormModule,
     ResponseModule,
+    TaskModule,
   ],
   controllers: [AppController],
   providers: [AppService],
